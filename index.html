@@ -3,40 +3,679 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi App con Google Sheets</title>
+    <title>SISTEMA DE BUSQUEDA</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .usuario { background: #f0f0f0; margin: 10px 0; padding: 10px; border-radius: 5px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: rgb(30, 91, 79); 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .tarjeta {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 95%;
+            max-width: 1050px; /* Ampliado para mejor visualización de tablas anchas */
+            margin-bottom: 20px;
+        }
+        .logo-app { 
+            width: 100%; 
+            max-width: 600px;
+            height: auto; 
+            margin-bottom: 30px;
+        }
+        #login-section { display: block; max-width: 400px; margin: 0 auto; }
+        #app-section { display: none; }
+        
+        .sub-panel { display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }
+        
+        .controles-busqueda, .form-edicion, .form-admin {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
+        
+        input, select, button, textarea { 
+            padding: 12px; 
+            font-size: 15px; 
+            border: 1px solid #ccc; 
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: rgb(30, 91, 79);
+            box-shadow: 0 0 0 3px rgba(30, 91, 79, 0.15);
+        }
+        textarea { resize: vertical; font-family: inherit; }
+        
+        button { background-color: rgb(156, 35, 72); color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: rgb(120, 25, 55); transform: translateY(-1px); }
+        button:active { transform: translateY(1px); }
+        
+        .btn-add { background-color: #2e7d32; }
+        .btn-add:hover { background-color: #1b5e20; }
+        .btn-send-block { background-color: #0288d1; width: 100%; font-size: 18px; margin-top: 15px; }
+        .btn-send-block:hover { background-color: #01579b; }
+        .btn-logout { background-color: #555; width: 100%; margin-top: 30px;}
+        .btn-logout:hover { background-color: #333; }
+        
+        .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
+
+        /* --- DISEÑO DE TABLAS Y CONTENEDORES --- */
+        .contenedor-tabla { 
+            overflow-x: auto; 
+            margin-top: 20px; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: white; text-align: left; }
+        th { 
+            background: rgb(24, 73, 63); 
+            color: white; 
+            padding: 14px 16px; 
+            text-transform: uppercase; 
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        td { padding: 12px 16px; border-bottom: 1px solid #eff2f1; white-space: nowrap; color: #333; }
+        tr:hover { background-color: rgba(30, 91, 79, 0.04); }
+        
+        .tabla-lote th { background: #37474f; }
+        .btn-del { background: #c62828; padding: 6px 12px; font-size: 12px; border-radius: 4px; }
+        .btn-del:hover { background: #b71c1c; }
+
+        /* --- SISTEMA DE RESALTADO DE ESTATUS (BADGES) --- */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 12px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        /* Entregadas: Verdes */
+        .status-badge-entregada {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+        /* Sobrantes: Rojos */
+        .status-badge-sobrante {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        /* Envíos/Intermedios: Azules */
+        .status-badge-envio {
+            background-color: #e1f5fe;
+            color: #0277bd;
+            border: 1px solid #81d4fa;
+        }
+        /* Predeterminado / Desconocido */
+        .status-badge-default {
+            background-color: #f5f5f5;
+            color: #616161;
+            border: 1px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
-    <h1>Mi Base de Datos de Google Sheets</h1>
-    <div id="contenedor-datos">Cargando datos...</div>
+
+    <!-- CONTROL DE ACCESO -->
+    <div id="login-section" class="tarjeta">
+        <img src="Imagen11.png" alt="Logo" class="logo-app">
+        <h2>Acceso al Sistema</h2>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" id="user" placeholder="Usuario">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button onclick="iniciarSesion()">Entrar</button>
+        </div>
+        <div id="login-mensaje" style="color: red; font-weight: bold; margin-top: 10px;"></div>
+    </div>
+
+    <!-- CUERPO CENTRAL -->
+    <div id="app-section" class="tarjeta">
+        <img src="Imagen11.png" alt="Logo" class="logo-app">
+      <img src="user___Imagen4t (5).gif" alt="saludo"> 
+        <h2 id="saludo-usuario">Buscador de Registros</h2>
+        
+        <!-- CONSULTAS -->
+        <div id="panel-busqueda">
+            <h3>Módulo de Consulta</h3>
+            <div class="controles-busqueda">
+                
+                <!-- LISTA NUEVA: TARJETAS O TRAMITES -->
+                <select id="tipoTablaBusqueda">
+                    <option value="Tarjetas">Tarjetas</option>
+                    <option value="Tramites">Trámites</option>
+                </select>
+
+                <input type="text" id="valorBusqueda" placeholder="Valor a buscar...">
+                
+                <select id="columnaBusqueda" onchange="gestionarSubLista()">
+                    <option value="Nombre">Nombre</option>
+                    <option value="CURP">CURP</option>
+                    <option value="Folio">Folio</option>
+                </select>
+
+                <!-- SUB-LISTA NUEVA: TUTOR O MENOR (Se oculta dinámicamente) -->
+                <select id="subTipoPersona">
+                    <option value="Tutor">Tutor</option>
+                    <option value="Menor">Menor</option>
+                </select>
+
+                <button onclick="ejecutarBusqueda()">Buscar</button>
+                 
+            </div>
+            <div id="contenedor-resultados"></div>
+        </div>
+
+        <!-- CAPTURA INTERMEDIA (LOTES) -->
+        <div id="panel-edicion" class="sub-panel">
+            <h3>Módulo de Edición (Captura por Bloques)</h3>
+            <div class="form-edicion">
+                <label style="font-weight: bold;">Actividad a realizar</label>
+                <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
+                    <option value="">-- Selecciona una actividad --</option>
+                    <option value="SOBRANTES">REGISTRO DE SOBRANTES</option>
+                    <option value="ENTREGADAS">REGISTRO DE ENTREGADAS</option>
+                </select>
+
+                <div id="campos-edicion" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
+                    <h4 style="margin:0;">Agregar registro al bloque temporal:</h4>
+                    <input type="text" id="editFolio" placeholder="Escribe o escanea el Folio">
+                    <select id="editEstatus"></select>
+                    <textarea id="editObservaciones" placeholder="Observaciones (Opcional)" rows="2"></textarea>
+                    <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
+                </div>
+                
+                <div id="area-lote-temporal" style="display:none; margin-top:20px;">
+                    <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
+                    <div class="contenedor-tabla">
+                        <table class="tabla-lote">
+                            <thead>
+                                <tr>
+                                    <th>Folio</th><th>Estatus a Asignar</th><th>Observaciones</th><th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lote-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMINISTRADORES -->
+        <div id="panel-admin" class="sub-panel">
+            
+            <div class="panel-bitacora">
+                <h3>Visualizador de Bitácora</h3>
+                <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
+                
+                <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
+                        <select id="filtroBitacoraFecha" onchange="buscarEnBitacora()">
+                            <option value="">Cargando fechas...</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario Activo:</label>
+                        <select id="filtroBitacoraUsuario" onchange="buscarEnBitacora()">
+                            <option value="">Cargando usuarios...</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
+                    </div>
+                </div>
+                
+                <div id="contenedor-bitacora"></div>
+            </div>
+
+            <!-- PANEL DE SEGURIDAD -->
+            <div class="panel-bloqueo">
+                <h3>Control de Seguridad (Solo Administradores)</h3>
+                <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
+                <div class="form-admin">
+                    <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
+                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
+                </div>
+            </div>
+            
+        </div>
+
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
 
     <script>
-        // Pega aquí la URL que te dio Google Apps Script
-       // const API_URL = 'https://script.google.com/macros/s/AKfycbypo0g-j6YZbjONlD3HfNiL6uMP-Rxm3DClDAXpOuVJwLeip85HCvw2Ve83yjg5Zne-/exec';
+        // CONFIGURACIONES Y VARIABLES GLOBALES
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwyS5D8qgTGQxLMx69WhMhY8X7rG_1-XRRjLpjHLf4M-i2YsJ8YR7ZLuEI3NyZsoLxQJQ/exec';
+        let usuarioActual = ""; 
+        let rolActual = "";
+        let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
+        let loteTemporal = [];
 
-        // Hacer la petición a Google Sheets
-        fetch(API_URL)
-            .then(response => response.json())
-            .then(data => {
-                const contenedor = document.getElementById('contenedor-datos');
-                contenedor.innerHTML = ''; // Borramos el texto de "Cargando..."
-                
-                // Recorremos los datos y creamos HTML para cada fila
-                data.forEach(fila => {
-                    const div = document.createElement('div');
-                    div.className = 'usuario';
-                    // Nota: 'Nombre' y 'Edad' deben coincidir exactamente con los títulos de tus columnas
-                    div.innerHTML = `<strong>${fila.Nombre}</strong> - ${fila.Edad} años`;
-                    contenedor.appendChild(div);
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('contenedor-datos').innerHTML = 'Hubo un error al cargar los datos.';
+        // --- SISTEMA DE SEGURIDAD (INACTIVIDAD) ---
+        let timerInactividad;
+        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000; // 15 minutos en milisegundos
+
+        function iniciarTemporizadorInactividad() {
+            detenerTemporizadorInactividad();
+            document.addEventListener('mousemove', resetearTemporizador);
+            document.addEventListener('keypress', resetearTemporizador);
+            document.addEventListener('click', resetearTemporizador);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
+        }
+
+        function detenerTemporizadorInactividad() {
+            clearTimeout(timerInactividad);
+            document.removeEventListener('mousemove', resetearTemporizador);
+            document.removeEventListener('keypress', resetearTemporizador);
+            document.removeEventListener('click', resetearTemporizador);
+        }
+
+        function resetearTemporizador() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
+        }
+
+        function cerrarSesionPorInactividad() {
+            alert("Tu sesión ha expirado por inactividad.");
+            cerrarSesion();
+        }
+
+        document.getElementById('pass').addEventListener('keypress', e => { 
+            if (e.key === 'Enter') iniciarSesion(); 
+        });
+        document.getElementById('valorBusqueda').addEventListener('keydown', e => { 
+            if (e.key === 'Enter') e.preventDefault();
+        });
+        document.getElementById('editFolio').addEventListener('keydown', e => { 
+            if (e.key === 'Enter') e.preventDefault();
+        });
+
+        // LÓGICA PARA MOSTRAR/OCULTAR LA LISTA DE TUTOR/MENOR
+        function gestionarSubLista() {
+            const columna = document.getElementById('columnaBusqueda').value;
+            const subLista = document.getElementById('subTipoPersona');
+            if (columna === 'Folio') {
+                subLista.style.display = 'none';
+            } else {
+                subLista.style.display = 'inline-block';
+            }
+        }
+
+        window.onload = async function() {
+            gestionarSubLista(); // Inicializamos la visibilidad del botón
+
+            if(sessionStorage.getItem("usuarioActual")) {
+                usuarioActual = sessionStorage.getItem("usuarioActual");
+                rolActual = sessionStorage.getItem("rolActual");
+                configurarVistasPorRol(rolActual);
+            }
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                datosDispositivo.ip = data.ip || "No disponible";
+                datosDispositivo.ubicacion = data.city ? `${data.city}, ${data.region}, ${data.country_name}` : "No disponible";
+            } catch (error) {
+                datosDispositivo.ip = "No disponible"; datosDispositivo.ubicacion = "No disponible";
+            }
+        };
+
+        async function enviarPeticion(datos) {
+            datos.usuario = usuarioActual;
+            datos.ip = datosDispositivo.ip;
+            datos.ubicacion = datosDispositivo.ubicacion;
+            const respuesta = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(datos),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
             });
+            return await respuesta.json();
+        }
+
+        function configurarVistasPorRol(rol) {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('app-section').style.display = 'block';
+            document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
+            document.getElementById('panel-edicion').style.display = 'none';
+            document.getElementById('panel-admin').style.display = 'none';
+
+            iniciarTemporizadorInactividad();
+
+            if (rol === "ATENCION" || rol === "ADMIN") {
+                document.getElementById('panel-edicion').style.display = 'block';
+            }
+            if (rol === "ADMIN") {
+                document.getElementById('panel-admin').style.display = 'block';
+                cargarUsuariosParaAdmin();
+                cargarFiltrosDesplegablesBitacora();
+            }
+        }
+
+        async function iniciarSesion() {
+            const user = document.getElementById('user').value.trim();
+            const pass = document.getElementById('pass').value.trim();
+            const msj = document.getElementById('login-mensaje');
+            if (!user || !pass) return msj.innerText = "Por favor, llena ambos campos.";
+            msj.innerText = "Validando...";
+
+            try {
+                usuarioActual = user;
+                const res = await enviarPeticion({ action: "login", password: pass });
+                if (res.exito) {
+                    rolActual = res.rol;
+                    sessionStorage.setItem("usuarioActual", user);
+                    sessionStorage.setItem("rolActual", rolActual);
+                    msj.innerText = "";
+                    configurarVistasPorRol(rolActual);
+                } else {
+                    msj.innerText = res.error;
+                    usuarioActual = "";
+                }
+            } catch (e) { msj.innerText = "Error en conexión con el servidor."; }
+        }
+
+        async function cargarFiltrosDesplegablesBitacora() {
+            const selectFecha = document.getElementById('filtroBitacoraFecha');
+            const selectUsuario = document.getElementById('filtroBitacoraUsuario');
+            
+            try {
+                const filtros = await enviarPeticion({ action: "obtener_filtros_bitacora" });
+                
+                selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
+                selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
+                
+                if (filtros.fechas && filtros.fechas.length > 0) {
+                    filtros.fechas.forEach(f => {
+                        let opt = document.createElement('option');
+                        opt.value = f; opt.innerText = f;
+                        selectFecha.appendChild(opt);
+                    });
+                }
+                
+                if (filtros.usuarios && filtros.usuarios.length > 0) {
+                    filtros.usuarios.forEach(u => {
+                        let opt = document.createElement('option');
+                        opt.value = u; opt.innerText = u;
+                        selectUsuario.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                selectFecha.innerHTML = '<option value="">Error al cargar</option>';
+                selectUsuario.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function consultarBitacoraServidor(fFecha, fUsuario) {
+            const contenedor = document.getElementById('contenedor-bitacora');
+            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros de auditoría...</p>';
+            
+            try {
+                const logs = await enviarPeticion({
+                    action: "obtener_bitacora",
+                    filtroFecha: fFecha,
+                    filtroUsuario: fUsuario
+                });
+
+                if(logs.error) {
+                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(logs.error)}</p>`;
+                    return;
+                }
+
+                if(!Array.isArray(logs) || logs.length === 0) {
+                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora para esta selección.</p>';
+                    return;
+                }
+
+                let html = `<div class="contenedor-tabla"><table>
+                            <thead>
+                                <tr style="background:#004d40; color:white;">
+                                    <th>Fecha / Hora</th><th>Usuario</th><th>Acción Ejecutada</th><th>Dirección IP</th><th>Ubicación</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                logs.reverse().forEach(l => {
+                    html += `<tr>
+                                <td>${escaparHTML(l.fecha)}</td>
+                                <td><b>${escaparHTML(l.usuario)}</b></td>
+                                <td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td>
+                                <td><code>${escaparHTML(l.ip)}</code></td>
+                                <td><small style="color:#555;">${escaparHTML(l.ubicacion)}</small></td>
+                             </tr>`;
+                });
+                
+                html += '</tbody></table></div>';
+                contenedor.innerHTML = html;
+
+            } catch(e) {
+                contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación al procesar la bitácora.</p>';
+            }
+        }
+
+        function buscarEnBitacora() {
+            const fecha = document.getElementById('filtroBitacoraFecha').value; 
+            const usuario = document.getElementById('filtroBitacoraUsuario').value;
+            
+            if (!fecha && !usuario) {
+                document.getElementById('contenedor-bitacora').innerHTML = '';
+                return;
+            }
+            consultarBitacoraServidor(fecha, usuario);
+        }
+
+        function limpiarYVerTodoBitacora() {
+            document.getElementById('filtroBitacoraFecha').value = "";
+            document.getElementById('filtroBitacoraUsuario').value = "";
+            consultarBitacoraServidor("", "");
+            cargarFiltrosDesplegablesBitacora();
+        }
+
+        function cambiarOpcionesEstatus() {
+            const actividad = document.getElementById('actividadRealizar').value;
+            const contenedorCampos = document.getElementById('campos-edicion');
+            const selectorEstatus = document.getElementById('editEstatus');
+            if(!actividad) { contenedorCampos.style.display = 'none'; return; }
+            contenedorCampos.style.display = 'flex';
+            selectorEstatus.innerHTML = '';
+            let opciones = (actividad === "SOBRANTES") ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"] : ["ENTREGADA", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
+            opciones.forEach(opt => {
+                let el = document.createElement('option');
+                el.value = opt; el.innerText = opt;
+                selectorEstatus.appendChild(el);
+            });
+        }
+
+        function agregarAlBloqueLocal() {
+            const folioInput = document.getElementById('editFolio');
+            const estatusInput = document.getElementById('editEstatus');
+            const obsInput = document.getElementById('editObservaciones');
+            const folio = folioInput.value.trim();
+            if(!folio) return alert("Por favor ingresa o escanea un folio.");
+            if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
+            
+            loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
+            folioInput.value = ""; obsInput.value = ""; folioInput.focus();
+            actualizarTablaInterfazLote();
+        }
+
+        function eliminarDelBloqueLocal(index) {
+            loteTemporal.splice(index, 1);
+            actualizarTablaInterfazLote();
+        }
+
+        function actualizarTablaInterfazLote() {
+            const area = document.getElementById('area-lote-temporal');
+            const tbody = document.getElementById('lote-body');
+            document.getElementById('contador-lote').innerText = loteTemporal.length;
+            if(loteTemporal.length === 0) { area.style.display = 'none'; tbody.innerHTML = ''; return; }
+            area.style.display = 'block'; tbody.innerHTML = '';
+            loteTemporal.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><b>${escaparHTML(item.folio)}</b></td><td>${escaparHTML(item.estatus)}</td>
+                                <td><span style="color:#666; font-style:italic;">${escaparHTML(item.observaciones) || 'Sin observaciones'}</span></td>
+                                <td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function enviarLoteAlServidor() {
+            if(loteTemporal.length === 0) return;
+            const btn = document.getElementById('btnEnviarBloque');
+            if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) return;
+            btn.innerText = "Procesando matriz..."; btn.disabled = true;
+
+            try {
+                const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
+                if(res.exito) {
+                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros.`;
+                    if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
+                    alert(msg);
+                    loteTemporal = []; actualizarTablaInterfazLote();
+                } else { alert("Error: " + res.error); }
+            } catch(e) { alert("Error de red o timeout."); } 
+            finally { btn.innerText = "🚀 Enviar todo el Bloque a Sheets"; btn.disabled = false; }
+        }
+
+        async function cargarUsuariosParaAdmin() {
+            const select = document.getElementById('listaUsuariosAdmin');
+            try {
+                const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
+                if(usuarios.error) return select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
+                select.innerHTML = '';
+                usuarios.forEach(u => {
+                    if(u.usuario !== usuarioActual) {
+                        let opt = document.createElement('option'); opt.value = u.usuario;
+                        opt.innerText = `${u.usuario} [${u.estado}]`; select.appendChild(opt);
+                    }
+                });
+            } catch(e) { select.innerHTML = '<option>Error al cargar usuarios</option>'; }
+        }
+
+        async function ejecutarBloqueo() {
+            const userParaBloquear = document.getElementById('listaUsuariosAdmin').value;
+            if(!userParaBloquear || userParaBloquear.includes("Cargando")) return alert("Selecciona un usuario válido.");
+            if(!confirm(`¿Revocar acceso permanentemente a ${userParaBloquear}?`)) return;
+            try {
+                const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: userParaBloquear });
+                if(res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); }
+            } catch(e) { alert("Error."); }
+        }
+
+        function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
+
+        function obtenerBadgeEstatus(estatus) {
+            if (!estatus) return `<span class="status-badge status-badge-default">S/E</span>`;
+            
+            const estatusMayus = estatus.toUpperCase().trim();
+            let claseEstatus = 'status-badge-default';
+
+            if (estatusMayus.includes('ENTREGADA')) {
+                claseEstatus = 'status-badge-entregada';
+            } else if (estatusMayus.includes('SOBRANTE')) {
+                claseEstatus = 'status-badge-sobrante';
+            } else if (estatusMayus.includes('ENVIADA') || estatusMayus.includes('OTRO') || estatusMayus.includes('SARE')) {
+                claseEstatus = 'status-badge-envio';
+            }
+
+            return `<span class="status-badge ${claseEstatus}">${escaparHTML(estatus)}</span>`;
+        }
+
+        async function ejecutarBusqueda() {
+            const valor = document.getElementById('valorBusqueda').value.trim();
+            const columna = document.getElementById('columnaBusqueda').value;
+            const tablaDestino = document.getElementById('tipoTablaBusqueda').value; // Tarjetas o Tramites
+            const subPersona = document.getElementById('subTipoPersona').value;      // Tutor o Menor
+
+            const contenedor = document.getElementById('contenedor-resultados');
+            if (!valor) return alert("Por favor ingresa un valor.");
+            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
+
+            try {
+                // AQUÍ SE ENVÍAN LOS NUEVOS PARÁMETROS AL SCRIPT
+                const resultados = await enviarPeticion({ 
+                    action: "buscar", 
+                    columna: columna, 
+                    valor: valor,
+                    tabla: tablaDestino,
+                    persona: subPersona
+                });
+                
+                if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
+                if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
+
+                // GENERACIÓN DINÁMICA DE TABLA
+                let html = `<div class="contenedor-tabla"><table><thead><tr>`;
+                
+                // Extraer encabezados del primer resultado
+                const encabezados = Object.keys(resultados[0]);
+                encabezados.forEach(h => {
+                    html += `<th>${escaparHTML(h)}</th>`;
+                });
+                html += `</tr></thead><tbody>`;
+                
+                // Rellenar datos
+                resultados.forEach(f => {
+                    html += `<tr>`;
+                    encabezados.forEach(h => {
+                        if(h.toUpperCase() === 'ESTATUS') {
+                            html += `<td>${obtenerBadgeEstatus(f[h])}</td>`;
+                        } else if(h.toUpperCase() === 'FOLIO') {
+                            html += `<td><b>${escaparHTML(f[h] || '')}</b></td>`;
+                        } else {
+                            html += `<td>${escaparHTML(f[h] || '')}</td>`;
+                        }
+                    });
+                    html += `</tr>`;
+                });
+                html += '</tbody></table></div>'; 
+                contenedor.innerHTML = html;
+            } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
+        }
+
+        async function cerrarSesion() {
+            detenerTemporizadorInactividad();
+            
+            if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) {
+                iniciarTemporizadorInactividad();
+                return;
+            }
+            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = [];
+            
+            document.getElementById('user').value = '';
+            document.getElementById('pass').value = '';
+
+            document.getElementById('contenedor-resultados').innerHTML = '';
+            document.getElementById('contenedor-bitacora').innerHTML = '';
+            document.getElementById('valorBusqueda').value = '';
+            document.getElementById('area-lote-temporal').style.display = 'none';
+            document.getElementById('app-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+        }
     </script>
 </body>
 </html>
