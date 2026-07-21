@@ -46,9 +46,6 @@
     border: 1px solid #b2dfdb;
     align-items: center;
 }
-
-
-        
         .controles-busqueda, .form-edicion, .form-admin {
             display: flex;
             flex-direction: row;
@@ -429,10 +426,10 @@
         function configurarVistasPorRol(rol) {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
-            document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
+            document.getElementById('saludo-usuario').innerText = `Panel del Sistema`;
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
-
+            document.getElementById('panel-documental').style.display = 'none'
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
