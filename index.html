@@ -191,6 +191,8 @@
 
         <div id="panel-expedientes" class="sub-panel" style="display: block;">
             <h3>Módulo de Expedientes y Reportes Excel</h3>
+            
+            <!-- MÓDULO DE EDICIÓN / EXPEDIENTES (ARRIBA) -->
             <div class="card-busqueda-exp">
                 <h4 style="margin:0 0 10px 0; color:#18493f;">Buscar registro para agregar al lote de expedientes:</h4>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -218,6 +220,21 @@
                     </table>
                 </div>
                 <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base y Generar Reporte Excel</button>
+            </div>
+
+            <!-- PRIMER MÓDULO DE BÚSQUEDA (AHORA ABAJO DEL MÓDULO DE EDICIÓN/EXPEDIENTES) -->
+            <div id="panel-busqueda-secundario" style="margin-top: 35px; border-top: 1px dashed #b2dfdb; padding-top: 20px;">
+                <h3 style="color: #18493f; margin-bottom: 10px;">Módulo de Búsqueda Avanzada</h3>
+                <div class="controles-busqueda">
+                    <input type="text" id="valorBusqueda2" placeholder="Valor secundario a buscar...">
+                    <select id="columnaBusqueda2">
+                        <option value="Nombre">Nombre</option>
+                        <option value="CURP">CURP</option>
+                        <option value="Folio">Folio</option>
+                    </select>
+                    <button onclick="ejecutarBusquedaSecundaria()" style="background-color: #1e5b4f;">Buscar</button>
+                </div>
+                <div id="contenedor-resultados2"></div>
             </div>
         </div>
 
@@ -261,7 +278,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzYlN2AYh4NJCqRv8P5m61EeMydMTc7nVHGBZrHYVtydOQo4ZDgXzU3bMCLd72gTgcfFQ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbylpKWFp1kqyA7kKEFUvT6ydy8ZpdsXi1-3MGLFw9ErKbv3nX5WPCNQLXqscnT0G5MIYg/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -298,6 +315,7 @@
 
         document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
         document.getElementById('valorBusqueda').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+        document.getElementById('valorBusqueda2').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
         document.getElementById('editFolio').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
         document.getElementById('valorBusquedaExp').addEventListener('keydown', e => { if (e.key === 'Enter') buscarParaExpediente(); });
 
@@ -584,13 +602,13 @@
         async function enviarExpedientesAlServidor() {
             if(loteExpedientes.length === 0) return;
             const btn = document.getElementById('btnEnviarBloqueExp');
-            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes a partir de la columna W y generar el reporte en Excel?`)) return;
+            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes concatenados en la columna W y generar el reporte en Excel?`)) return;
             btn.innerText = "Procesando y generando reporte..."; btn.disabled = true;
 
             try {
                 const res = await enviarPeticion({ action: "guardar_expedientes_y_reporte", lote: loteExpedientes });
                 if(res.exito) {
-                    let mensajeFinal = `¡Éxito total!\n- Se actualizaron los datos en la hoja Base (Columna W en adelante).\n- Se generó el reporte en Google Drive.`;
+                    let mensajeFinal = `¡Éxito total!\n- Se guardaron los datos concatenados en la columna W.\n- Se generó el reporte en Google Drive con celdas separadas.`;
                     if(res.fileUrl) {
                         mensajeFinal += `\n\n¿Deseas abrir el archivo Excel generado?`;
                         if(confirm(mensajeFinal)) {
@@ -649,10 +667,47 @@
             return `<span class="status-badge ${claseEstatus}">${escaparHTML(estatus)}</span>`;
         }
 
+        // BÚSQUEDA ORIGINAL (ARRIBA)
         async function ejecutarBusqueda() {
             const valor = document.getElementById('valorBusqueda').value.trim();
             const columna = document.getElementById('columnaBusqueda').value;
             const contenedor = document.getElementById('contenedor-resultados');
+            if (!valor) return alert("Por favor ingresa un valor.");
+            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
+
+            try {
+                const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
+                if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
+                if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
+
+                let html = `<div class="contenedor-tabla"><table><thead><tr>
+                            <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th>
+                            </tr></thead><tbody>`;
+                resultados.forEach(f => {
+                    const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
+                    html += `<tr>
+                                <td><b>${escaparHTML(f.FOLIO)}</b></td>
+                                <td>${escaparHTML(f.NOMBRE)}</td>
+                                <td>${estatusHTML}</td>
+                                <td>${escaparHTML(f.SARE)}</td>
+                                <td>${escaparHTML(f.MUNICIPIO)}</td>
+                                <td>${escaparHTML(f.CCT)}</td>
+                                <td>${escaparHTML(f.ESCUELA)}</td>
+                                <td>${escaparHTML(f.NIVEL)}</td>
+                                <td>${escaparHTML(f.CURP)}</td>
+                                <td>${escaparHTML(f.MES_REMESA)}</td>
+                                <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
+                             </tr>`;
+                });
+                html += '</tbody></table></div>'; contenedor.innerHTML = html;
+            } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
+        }
+
+        // BÚSQUEDA SECUNDARIA (ABAJO DEL MÓDULO DE EDICIÓN)
+        async function ejecutarBusquedaSecundaria() {
+            const valor = document.getElementById('valorBusqueda2').value.trim();
+            const columna = document.getElementById('columnaBusqueda2').value;
+            const contenedor = document.getElementById('contenedor-resultados2');
             if (!valor) return alert("Por favor ingresa un valor.");
             contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
 
@@ -694,8 +749,10 @@
             document.getElementById('user').value = '';
             document.getElementById('pass').value = '';
             document.getElementById('contenedor-resultados').innerHTML = '';
+            document.getElementById('contenedor-resultados2').innerHTML = '';
             document.getElementById('contenedor-bitacora').innerHTML = '';
             document.getElementById('valorBusqueda').value = '';
+            document.getElementById('valorBusqueda2').value = '';
             document.getElementById('area-lote-temporal').style.display = 'none';
             document.getElementById('area-lote-exp').style.display = 'none';
             document.getElementById('app-section').style.display = 'none';
