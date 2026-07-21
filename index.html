@@ -786,13 +786,6 @@
 
             let datosHoja1 = listaDocumentalAcumulada.map(item => ({
                 Folio: item.FOLIO || item.Folio || '',
-
-          
-          "BLOQUE": rowData[13] || '',
-          "MES_REMESA": rowData[15] || '',// I
-          "CURP": rowData[17] || '',      // H (Ajustado según el orden estricto de columnas requeridas A,B,D,E,F,G,H,I,J,K,L,M,N,Q,P,S)
-          "OBSERVACIONES": rowData[16] || '', // J
-          "ESTATUS": rowData[18] || '', // S
                 SARE: item.SARE || '',
                 Municipio: item.MUNICIPIO || '',
                 CCT: item.CCT || '',
@@ -979,7 +972,7 @@
                 if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
 
                 let html = `<div class="contenedor-tabla"><table><thead><tr>
-                            <th>FOLIO</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>NOMBRE</th><th>CURP 2</th><th>ESTATUS</th>
+                            <th>FOLIO</th><th>NOMBRE</th><th>SARE</th><th>CURP</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>ESTATUS</th>
                             </tr></thead><tbody>`;
                 resultados.forEach(f => {
                     const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
