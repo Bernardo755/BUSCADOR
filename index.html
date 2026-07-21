@@ -120,6 +120,17 @@
         .grid-docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
         .grid-docs label { font-size: 12px; font-weight: bold; color: #1e5b4f; display: block; margin-bottom: 3px; }
         .grid-docs input { width: 100%; box-sizing: border-box; text-align: center; padding: 8px; }
+        
+        .alerta-suma {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -192,7 +203,6 @@
         <div id="panel-expedientes" class="sub-panel" style="display: block;">
             <h3>Módulo de Expedientes y Reportes Excel</h3>
             
-            <!-- MÓDULO DE EDICIÓN / EXPEDIENTES (ARRIBA) -->
             <div class="card-busqueda-exp">
                 <h4 style="margin:0 0 10px 0; color:#18493f;">Buscar registro para agregar al lote de expedientes:</h4>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -213,7 +223,7 @@
                     <table class="tabla-lote">
                         <thead>
                             <tr>
-                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>INE</th><th>Acta</th><th>CURP</th><th>Comp.</th><th>Acuse</th><th>Obs.</th><th>Acción</th>
+                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>Suma Docs</th><th>INE</th><th>Acta</th><th>CURP</th><th>Comp.</th><th>Acuse</th><th>Obs.</th><th>Acción</th>
                             </tr>
                         </thead>
                         <tbody id="lote-exp-body"></tbody>
@@ -222,7 +232,6 @@
                 <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base y Generar Reporte Excel</button>
             </div>
 
-            <!-- PRIMER MÓDULO DE BÚSQUEDA (AHORA ABAJO DEL MÓDULO DE EDICIÓN/EXPEDIENTES) -->
             <div id="panel-busqueda-secundario" style="margin-top: 35px; border-top: 1px dashed #b2dfdb; padding-top: 20px;">
                 <h3 style="color: #18493f; margin-bottom: 10px;">Módulo de Búsqueda Avanzada</h3>
                 <div class="controles-busqueda">
@@ -278,7 +287,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbylpKWFp1kqyA7kKEFUvT6ydy8ZpdsXi1-3MGLFw9ErKbv3nX5WPCNQLXqscnT0G5MIYg/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbylLa1ZmAQwbprotikGKTJm4lMy-kvjVaexNrjBGCHK7dvsFnDfvzfTVJnvgLEFb0EZNg/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -517,12 +526,15 @@
                         <p style="margin:0 0 10px 0;"><b>Encontrado:</b> [Folio: ${escaparHTML(reg.FOLIO)}] - ${escaparHTML(reg.NOMBRE)} (CURP: ${escaparHTML(reg.CURP)})</p>
                         <div class="grid-docs">
                             <div><label>Caja</label><input type="text" id="expCaja" placeholder="Ej. C-1"></div>
-                            <div><label>Cantidad Fojas</label><input type="number" id="expFojas" value="0"></div>
-                            <div><label>INE</label><input type="number" id="expIne" value="0"></div>
-                            <div><label>Acta Nac.</label><input type="number" id="expActa" value="0"></div>
-                            <div><label>CURP (Doc)</label><input type="number" id="expCurpDoc" value="0"></div>
-                            <div><label>Comprobante</label><input type="number" id="expComprobante" value="0"></div>
-                            <div><label>Acuse</label><input type="number" id="expAcuse" value="0"></div>
+                            <div><label>Cantidad Fojas</label><input type="number" id="expFojas" value="0" oninput="calcularSumaDocsResto()"></div>
+                            <div><label>INE</label><input type="number" id="expIne" value="0" oninput="calcularSumaDocsResto()"></div>
+                            <div><label>Acta Nac.</label><input type="number" id="expActa" value="0" oninput="calcularSumaDocsResto()"></div>
+                            <div><label>CURP (Doc)</label><input type="number" id="expCurpDoc" value="0" oninput="calcularSumaDocsResto()"></div>
+                            <div><label>Comprobante</label><input type="number" id="expComprobante" value="0" oninput="calcularSumaDocsResto()"></div>
+                            <div><label>Acuse</label><input type="number" id="expAcuse" value="0" oninput="calcularSumaDocsResto()"></div>
+                        </div>
+                        <div class="alerta-suma" id="alertaSumaDoc">
+                            Suma de documentos (INE + Acta + CURP + Comp. + Acuse): <span id="lblSumaDocs">0</span> | Fojas declaradas: <span id="lblFojasVal">0</span>
                         </div>
                         <div style="margin-top:10px;">
                             <label style="font-size:12px; font-weight:bold; color:#1e5b4f;">Observaciones del Expediente</label>
@@ -531,8 +543,39 @@
                         <button class="btn-add" style="margin-top:12px; width:100%;" onclick='agregarExpedienteLista(${JSON.stringify(reg)})'>➕ Agregar al Lote de Expedientes</button>
                     </div>
                 `;
+                calcularSumaDocsResto();
             } catch(e) {
                 contenedor.innerHTML = "<p style='color:red;'>Error al realizar la búsqueda.</p>";
+            }
+        }
+
+        function calcularSumaDocsResto() {
+            const fojas = parseInt(document.getElementById('expFojas').value) || 0;
+            const ine = parseInt(document.getElementById('expIne').value) || 0;
+            const acta = parseInt(document.getElementById('expActa').value) || 0;
+            const curpDoc = parseInt(document.getElementById('expCurpDoc').value) || 0;
+            const comp = parseInt(document.getElementById('expComprobante').value) || 0;
+            const acuse = parseInt(document.getElementById('expAcuse').value) || 0;
+            
+            const sumaDocs = ine + acta + curpDoc + comp + acuse;
+            
+            const lblSuma = document.getElementById('lblSumaDocs');
+            const lblFojas = document.getElementById('lblFojasVal');
+            const contenedorAlerta = document.getElementById('alertaSumaDoc');
+            
+            if(lblSuma) lblSuma.innerText = sumaDocs;
+            if(lblFojas) lblFojas.innerText = fojas;
+            
+            if(contenedorAlerta) {
+                if(sumaDocs === fojas) {
+                    contenedorAlerta.style.background = "#d4edda";
+                    contenedorAlerta.style.borderColor = "#c3e6cb";
+                    contenedorAlerta.style.color = "#155724";
+                } else {
+                    contenedorAlerta.style.background = "#fff3cd";
+                    contenedorAlerta.style.borderColor = "#ffeeba";
+                    contenedorAlerta.style.color = "#856404";
+                }
             }
         }
 
@@ -547,6 +590,13 @@
             const obs = document.getElementById('expObs').value.trim();
 
             if(!caja) return alert("Debe especificar la caja.");
+            
+            const sumaDocs = ine + acta + curpDoc + comp + acuse;
+            if(sumaDocs !== fojas) {
+                if(!confirm(`Atención: La suma de documentos (${sumaDocs}) no coincide exactamente con las fojas (${fojas}). ¿Deseas agregarlo de todos modos?`)) {
+                    return;
+                }
+            }
 
             if(loteExpedientes.some(item => item.folio === reg.FOLIO)) return alert("Este registro ya se encuentra en la lista de expedientes.");
 
@@ -561,6 +611,7 @@
                 curpDoc: curpDoc,
                 comprobante: comp,
                 acuse: acuse,
+                sumaDocs: sumaDocs,
                 observaciones: obs
             });
 
@@ -582,11 +633,14 @@
             area.style.display = 'block'; tbody.innerHTML = '';
             loteExpedientes.forEach((item, index) => {
                 const tr = document.createElement('tr');
+                const coincide = item.sumaDocs === item.fojas;
+                const estiloSuma = coincide ? 'color: #2e7d32; font-weight: bold;' : 'color: #c62828; font-weight: bold;';
                 tr.innerHTML = `
                     <td><b>${escaparHTML(item.folio)}</b></td>
                     <td>${escaparHTML(item.nombre)}</td>
                     <td><span class="status-badge status-badge-envio">${escaparHTML(item.caja)}</span></td>
                     <td>${item.fojas}</td>
+                    <td><span style="${estiloSuma}">${item.sumaDocs}</span></td>
                     <td>${item.ine}</td>
                     <td>${item.acta}</td>
                     <td>${item.curpDoc}</td>
@@ -602,13 +656,13 @@
         async function enviarExpedientesAlServidor() {
             if(loteExpedientes.length === 0) return;
             const btn = document.getElementById('btnEnviarBloqueExp');
-            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes concatenados en la columna W y generar el reporte en Excel?`)) return;
+            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes en la Columna W como cadena de texto separada por comas y generar el reporte en Excel?`)) return;
             btn.innerText = "Procesando y generando reporte..."; btn.disabled = true;
 
             try {
                 const res = await enviarPeticion({ action: "guardar_expedientes_y_reporte", lote: loteExpedientes });
                 if(res.exito) {
-                    let mensajeFinal = `¡Éxito total!\n- Se guardaron los datos concatenados en la columna W.\n- Se generó el reporte en Google Drive con celdas separadas.`;
+                    let mensajeFinal = `¡Éxito total!\n- Se guardaron los datos en formato de texto con comas en la Columna W.\n- Se generó el reporte en Google Drive separando los datos por columna.`;
                     if(res.fileUrl) {
                         mensajeFinal += `\n\n¿Deseas abrir el archivo Excel generado?`;
                         if(confirm(mensajeFinal)) {
@@ -667,7 +721,6 @@
             return `<span class="status-badge ${claseEstatus}">${escaparHTML(estatus)}</span>`;
         }
 
-        // BÚSQUEDA ORIGINAL (ARRIBA)
         async function ejecutarBusqueda() {
             const valor = document.getElementById('valorBusqueda').value.trim();
             const columna = document.getElementById('columnaBusqueda').value;
@@ -703,7 +756,6 @@
             } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
         }
 
-        // BÚSQUEDA SECUNDARIA (ABAJO DEL MÓDULO DE EDICIÓN)
         async function ejecutarBusquedaSecundaria() {
             const valor = document.getElementById('valorBusqueda2').value.trim();
             const columna = document.getElementById('columnaBusqueda2').value;
