@@ -770,7 +770,8 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><b>${escaparHTML(item.FOLIO || item.Folio || '')}</b></td>
-                    <td>${escaparHTML(item.NOMBRE)}</td>
+                    <td>${escaparHTML(item.NOMBRE_COMPLETO)}</td>
+                    <td>${escaparHTML(item.CURP)}</td>
                     <td>${escaparHTML(item.caja)}</td>
                     <td>${escaparHTML(item.fojas)}</td>
                     <td>${badgeEstatus}</td>
