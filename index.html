@@ -336,7 +336,7 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxRVKKYIYMppUuyqs7pVdGD1Vu0HmvKJ9MEHyZ3WyCVScaR1IJtS9B-kbsLE_sPfrhnig/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwnHz0OhybfplMtxW5Ds6BDtdWkFPKlTna1ZlT9yEMTioCXmeY-2AR291pn20it0AISxg/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -645,10 +645,11 @@
                     html += `<tr>
                                 <td><button style="padding:5px 10px; background:#00796b;" onclick='seleccionarRegistroDoc(${JSON.stringify(f)})'>Seleccionar</button></td>
                                 <td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td>
-                                <td>${escaparHTML(f.NOMBRE)}</td>
+                                <td>${escaparHTML(f.NOMBRE_COMPLETO)}</td>
                                 <td>${escaparHTML(f.CURP)}</td>
                                 <td>${escaparHTML(f.SARE)}</td>
                                 <td>${escaparHTML(f.MUNICIPIO)}</td>
+                                <td>${escaparHTML(f.ESTATUS)}</td>
                              </tr>`;
                 });
                 html += '</tbody></table></div>';
@@ -785,15 +786,28 @@
 
             let datosHoja1 = listaDocumentalAcumulada.map(item => ({
                 Folio: item.FOLIO || item.Folio || '',
-                Nombre: item.NOMBRE || '',
-                Estatus: item.ESTATUS || '',
+
+          
+          "BLOQUE": rowData[13]
+          "MES_REMESA": rowData[15],// I
+          "CURP": rowData[17],      // H (Ajustado según el orden estricto de columnas requeridas A,B,D,E,F,G,H,I,J,K,L,M,N,Q,P,S)
+          "OBSERVACIONES": rowData[16], // J
+          "ESTATUS": rowData[18]   // S
                 SARE: item.SARE || '',
                 Municipio: item.MUNICIPIO || '',
                 CCT: item.CCT || '',
                 Escuela: item.ESCUELA || '',
+                Id Becario: item.ID_BECARIO || '',
+                Nombre: item.NOMBRE || '',
+                Apellido Paterno: item.APELLIDO_PATERNO || '',
+                Apellido Materno: item.APELLIDO_MATERNO || '',
+                Remesa: item.REMESA || '',
                 Nivel: item.NIVEL || '',
-                CURP: item.CURP || '',
+                Bloque: item.BLOQUE || '',
                 Mes_Remesa: item.MES_REMESA || '',
+                CURP: item.CURP || '',
+                Observaciones: item.OBSERVACIONES || '',
+                Estatus: item.ESTATUS || '',
                 Caja: item.caja,
                 Fojas: item.fojas,
                 Cantidad_INE: item.ine,
@@ -980,8 +994,8 @@
                                 <td>${escaparHTML(f.CURP)}</td>
                                 <td>${escaparHTML(f.MES_REMESA)}</td>
                                 <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
-                                <td>${escaparHTML(f.NOMBRE)}</td>
-                                <td>${escaparHTML(f.CURP_2)}</td>
+                                <td>${escaparHTML(f.NOMBRE_COMPLETO)}</td>
+                                <td>${escaparHTML(f.CURP)}</td>
                                 <td>${estatusHTML}</td>
                              </tr>`;
                 });
