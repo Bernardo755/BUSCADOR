@@ -24,7 +24,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             text-align: center;
             width: 95%;
-            max-width: 1050px; /* Ampliado para mejor visualización de tablas anchas */
+            max-width: 1050px;
             margin-bottom: 20px;
         }
         .logo-app { 
@@ -113,30 +113,16 @@
             letter-spacing: 0.5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        /* Entregadas: Verdes */
-        .status-badge-entregada {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
-        }
-        /* Sobrantes: Rojos */
-        .status-badge-sobrante {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-        }
-        /* Envíos/Intermedios: Azules */
-        .status-badge-envio {
-            background-color: #e1f5fe;
-            color: #0277bd;
-            border: 1px solid #81d4fa;
-        }
-        /* Predeterminado / Desconocido */
-        .status-badge-default {
-            background-color: #f5f5f5;
-            color: #616161;
-            border: 1px solid #e0e0e0;
-        }
+        .status-badge-entregada { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .status-badge-sobrante { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .status-badge-envio { background-color: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
+        .status-badge-default { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
+
+        /* Estilos específicos para el nuevo módulo de Expedientes */
+        .card-busqueda-exp { background: #f0f7f4; padding: 20px; border-radius: 8px; border: 1px solid #c2dcd3; margin-top: 15px; }
+        .grid-docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
+        .grid-docs label { font-size: 12px; font-weight: bold; color: #1e5b4f; display: block; margin-bottom: 3px; }
+        .grid-docs input { width: 100%; box-sizing: border-box; text-align: center; padding: 8px; }
     </style>
 </head>
 <body>
@@ -163,31 +149,43 @@
         <div id="panel-busqueda">
             <h3>Módulo de Consulta</h3>
             <div class="controles-busqueda">
-                
-                <!-- LISTA NUEVA: TARJETAS O TRAMITES -->
-                <select id="tipoTablaBusqueda">
-                    <option value="Tarjetas">Tarjetas</option>
-                    <option value="Tramites">Trámites</option>
-                </select>
-
                 <input type="text" id="valorBusqueda" placeholder="Valor a buscar...">
-                
-                <select id="columnaBusqueda" onchange="gestionarSubLista()">
+                <select id="columnaBusqueda">
                     <option value="Nombre">Nombre</option>
                     <option value="CURP">CURP</option>
                     <option value="Folio">Folio</option>
                 </select>
-
-                <!-- SUB-LISTA NUEVA: TUTOR O MENOR (Se oculta dinámicamente) -->
-                <select id="subTipoPersona">
-                    <option value="Tutor">Tutor</option>
-                    <option value="Menor">Menor</option>
-                </select>
-
                 <button onclick="ejecutarBusqueda()">Buscar</button>
-                 
             </div>
             <div id="contenedor-resultados"></div>
+        </div>
+
+        <!-- MÓDULO NUEVO: BÚSQUEDA Y GESTIÓN DE EXPEDIENTES (DESPUÉS DEL MÓDULO DE ACTUALIZACIÓN POR BLOQUES) -->
+        <div id="panel-expedientes" class="sub-panel" style="display: block;">
+            <h3>Módulo de Expedientes y Reportes Excel</h3>
+            <div class="card-busqueda-exp">
+                <h4 style="margin:0 0 10px 0; color:#18493f;">Buscar registro para agregar al lote de expedientes:</h4>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="valorBusquedaExp" placeholder="Folio, Nombre o CURP..." style="flex: 1; min-width: 200px;">
+                    <button onclick="buscarParaExpediente()" class="btn-add">🔍 Buscar en Base</button>
+                </div>
+                <div id="contenedor-resultado-exp" style="margin-top: 15px;"></div>
+            </div>
+
+            <div id="area-lote-exp" style="display:none; margin-top:25px;">
+                <h4 style="margin:0; color: #37474f;">Registros de Expedientes Acumulados (<span id="contador-lote-exp">0</span>):</h4>
+                <div class="contenedor-tabla">
+                    <table class="tabla-lote">
+                        <thead>
+                            <tr>
+                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>INE</th><th>Acta</th><th>CURP</th><th>Comp.</th><th>Acuse</th><th>Obs.</th><th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lote-exp-body"></tbody>
+                    </table>
+                </div>
+                <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base y Generar Reporte Excel</button>
+            </div>
         </div>
 
         <!-- CAPTURA INTERMEDIA (LOTES) -->
@@ -228,7 +226,6 @@
 
         <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
-            
             <div class="panel-bitacora">
                 <h3>Visualizador de Bitácora</h3>
                 <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
@@ -263,7 +260,6 @@
                     <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
                 </div>
             </div>
-            
         </div>
 
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
@@ -271,15 +267,15 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwyS5D8qgTGQxLMx69WhMhY8X7rG_1-XRRjLpjHLf4M-i2YsJ8YR7ZLuEI3NyZsoLxQJQ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxjaq4wQ0YLaCNEwCIt39tHh7QXQKccOBVu5tFI5xjnbNwWAgM9huIaYanbPp42NYrmJg/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
+        let loteExpedientes = []; // Array para el nuevo módulo de expedientes
 
-        // --- SISTEMA DE SEGURIDAD (INACTIVIDAD) ---
         let timerInactividad;
-        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000; // 15 minutos en milisegundos
+        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
 
         function iniciarTemporizadorInactividad() {
             detenerTemporizadorInactividad();
@@ -306,30 +302,12 @@
             cerrarSesion();
         }
 
-        document.getElementById('pass').addEventListener('keypress', e => { 
-            if (e.key === 'Enter') iniciarSesion(); 
-        });
-        document.getElementById('valorBusqueda').addEventListener('keydown', e => { 
-            if (e.key === 'Enter') e.preventDefault();
-        });
-        document.getElementById('editFolio').addEventListener('keydown', e => { 
-            if (e.key === 'Enter') e.preventDefault();
-        });
-
-        // LÓGICA PARA MOSTRAR/OCULTAR LA LISTA DE TUTOR/MENOR
-        function gestionarSubLista() {
-            const columna = document.getElementById('columnaBusqueda').value;
-            const subLista = document.getElementById('subTipoPersona');
-            if (columna === 'Folio') {
-                subLista.style.display = 'none';
-            } else {
-                subLista.style.display = 'inline-block';
-            }
-        }
+        document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
+        document.getElementById('valorBusqueda').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+        document.getElementById('editFolio').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+        document.getElementById('valorBusquedaExp').addEventListener('keydown', e => { if (e.key === 'Enter') buscarParaExpediente(); });
 
         window.onload = async function() {
-            gestionarSubLista(); // Inicializamos la visibilidad del botón
-
             if(sessionStorage.getItem("usuarioActual")) {
                 usuarioActual = sessionStorage.getItem("usuarioActual");
                 rolActual = sessionStorage.getItem("rolActual");
@@ -363,6 +341,7 @@
             document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
+            document.getElementById('panel-expedientes').style.display = 'block'; // Visible para usuarios autenticados
 
             iniciarTemporizadorInactividad();
 
@@ -402,89 +381,41 @@
         async function cargarFiltrosDesplegablesBitacora() {
             const selectFecha = document.getElementById('filtroBitacoraFecha');
             const selectUsuario = document.getElementById('filtroBitacoraUsuario');
-            
             try {
                 const filtros = await enviarPeticion({ action: "obtener_filtros_bitacora" });
-                
                 selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
                 selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
-                
-                if (filtros.fechas && filtros.fechas.length > 0) {
-                    filtros.fechas.forEach(f => {
-                        let opt = document.createElement('option');
-                        opt.value = f; opt.innerText = f;
-                        selectFecha.appendChild(opt);
-                    });
-                }
-                
-                if (filtros.usuarios && filtros.usuarios.length > 0) {
-                    filtros.usuarios.forEach(u => {
-                        let opt = document.createElement('option');
-                        opt.value = u; opt.innerText = u;
-                        selectUsuario.appendChild(opt);
-                    });
-                }
-            } catch (e) {
-                selectFecha.innerHTML = '<option value="">Error al cargar</option>';
-                selectUsuario.innerHTML = '<option value="">Error al cargar</option>';
-            }
+                if (filtros.fechas) filtros.fechas.forEach(f => {
+                    let opt = document.createElement('option'); opt.value = f; opt.innerText = f; selectFecha.appendChild(opt);
+                });
+                if (filtros.usuarios) filtros.usuarios.forEach(u => {
+                    let opt = document.createElement('option'); opt.value = u; opt.innerText = u; selectUsuario.appendChild(opt);
+                });
+            } catch (e) {}
         }
 
         async function consultarBitacoraServidor(fFecha, fUsuario) {
             const contenedor = document.getElementById('contenedor-bitacora');
-            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros de auditoría...</p>';
-            
+            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros...</p>';
             try {
-                const logs = await enviarPeticion({
-                    action: "obtener_bitacora",
-                    filtroFecha: fFecha,
-                    filtroUsuario: fUsuario
-                });
-
-                if(logs.error) {
-                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(logs.error)}</p>`;
-                    return;
-                }
-
+                const logs = await enviarPeticion({ action: "obtener_bitacora", filtroFecha: fFecha, filtroUsuario: fUsuario });
                 if(!Array.isArray(logs) || logs.length === 0) {
-                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora para esta selección.</p>';
+                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos.</p>';
                     return;
                 }
-
-                let html = `<div class="contenedor-tabla"><table>
-                            <thead>
-                                <tr style="background:#004d40; color:white;">
-                                    <th>Fecha / Hora</th><th>Usuario</th><th>Acción Ejecutada</th><th>Dirección IP</th><th>Ubicación</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-                
+                let html = `<div class="contenedor-tabla"><table><thead><tr style="background:#004d40; color:white;"><th>Fecha / Hora</th><th>Usuario</th><th>Acción</th><th>IP</th><th>Ubicación</th></tr></thead><tbody>`;
                 logs.reverse().forEach(l => {
-                    html += `<tr>
-                                <td>${escaparHTML(l.fecha)}</td>
-                                <td><b>${escaparHTML(l.usuario)}</b></td>
-                                <td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td>
-                                <td><code>${escaparHTML(l.ip)}</code></td>
-                                <td><small style="color:#555;">${escaparHTML(l.ubicacion)}</small></td>
-                             </tr>`;
+                    html += `<tr><td>${escaparHTML(l.fecha)}</td><td><b>${escaparHTML(l.usuario)}</b></td><td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td><td><code>${escaparHTML(l.ip)}</code></td><td><small>${escaparHTML(l.ubicacion)}</small></td></tr>`;
                 });
-                
                 html += '</tbody></table></div>';
                 contenedor.innerHTML = html;
-
-            } catch(e) {
-                contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación al procesar la bitácora.</p>';
-            }
+            } catch(e) { contenedor.innerHTML = '<p style="color:red;">Error de comunicación.</p>'; }
         }
 
         function buscarEnBitacora() {
             const fecha = document.getElementById('filtroBitacoraFecha').value; 
             const usuario = document.getElementById('filtroBitacoraUsuario').value;
-            
-            if (!fecha && !usuario) {
-                document.getElementById('contenedor-bitacora').innerHTML = '';
-                return;
-            }
+            if (!fecha && !usuario) { document.getElementById('contenedor-bitacora').innerHTML = ''; return; }
             consultarBitacoraServidor(fecha, usuario);
         }
 
@@ -504,9 +435,7 @@
             selectorEstatus.innerHTML = '';
             let opciones = (actividad === "SOBRANTES") ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"] : ["ENTREGADA", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
             opciones.forEach(opt => {
-                let el = document.createElement('option');
-                el.value = opt; el.innerText = opt;
-                selectorEstatus.appendChild(el);
+                let el = document.createElement('option'); el.value = opt; el.innerText = opt; selectorEstatus.appendChild(el);
             });
         }
 
@@ -517,7 +446,6 @@
             const folio = folioInput.value.trim();
             if(!folio) return alert("Por favor ingresa o escanea un folio.");
             if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
-            
             loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
             folioInput.value = ""; obsInput.value = ""; folioInput.focus();
             actualizarTablaInterfazLote();
@@ -536,9 +464,7 @@
             area.style.display = 'block'; tbody.innerHTML = '';
             loteTemporal.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td><b>${escaparHTML(item.folio)}</b></td><td>${escaparHTML(item.estatus)}</td>
-                                <td><span style="color:#666; font-style:italic;">${escaparHTML(item.observaciones) || 'Sin observaciones'}</span></td>
-                                <td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>`;
+                tr.innerHTML = `<td><b>${escaparHTML(item.folio)}</b></td><td>${escaparHTML(item.estatus)}</td><td><span style="color:#666;">${escaparHTML(item.observaciones) || 'Sin obs'}</span></td><td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -547,19 +473,153 @@
             if(loteTemporal.length === 0) return;
             const btn = document.getElementById('btnEnviarBloque');
             if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) return;
-            btn.innerText = "Procesando matriz..."; btn.disabled = true;
-
+            btn.innerText = "Procesando..."; btn.disabled = true;
             try {
                 const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
                 if(res.exito) {
-                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros.`;
-                    if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
+                    let msg = `¡Éxito! Se actualizaron ${res.exitosos} registros.`;
+                    if(res.noEncontrados.length > 0) msg += `\n\nNo hallados: ${res.noEncontrados.join(", ")}`;
                     alert(msg);
                     loteTemporal = []; actualizarTablaInterfazLote();
                 } else { alert("Error: " + res.error); }
-            } catch(e) { alert("Error de red o timeout."); } 
-            finally { btn.innerText = "🚀 Enviar todo el Bloque a Sheets"; btn.disabled = false; }
+            } catch(e) { alert("Error de red."); } 
+            finally { btn.innerText = "🚀 Enviar todo el Bloque"; btn.disabled = false; }
         }
+
+        // --- FUNCIONES NUEVAS: MÓDULO DE EXPEDIENTES ---
+        async function buscarParaExpediente() {
+            const val = document.getElementById('valorBusquedaExp').value.trim();
+            const contenedor = document.getElementById('contenedor-resultado-exp');
+            if(!val) return alert("Ingresa un folio, nombre o CURP para buscar.");
+            contenedor.innerHTML = "<p>Buscando registro...</p>";
+
+            try {
+                // Buscamos probando por Folio, luego Nombre o CURP automáticamente mediante el backend
+                let res = await enviarPeticion({ action: "buscar_expediente_unico", valor: val });
+                if(res.error || !res.registro) {
+                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${res.error || "No se encontró ningún registro con ese valor."}</p>`;
+                    return;
+                }
+                const reg = res.registro;
+                contenedor.innerHTML = `
+                    <div style="background:white; padding:15px; border-radius:6px; border:1px solid #b2dfdb;">
+                        <p style="margin:0 0 10px 0;"><b>Encontrado:</b> [Folio: ${escaparHTML(reg.FOLIO)}] - ${escaparHTML(reg.NOMBRE)} (CURP: ${escaparHTML(reg.CURP)})</p>
+                        <div class="grid-docs">
+                            <div><label>Caja</label><input type="text" id="expCaja" placeholder="Ej. C-1"></div>
+                            <div><label>Cantidad Fojas</label><input type="number" id="expFojas" value="0"></div>
+                            <div><label>INE</label><input type="number" id="expIne" value="0"></div>
+                            <div><label>Acta Nac.</label><input type="number" id="expActa" value="0"></div>
+                            <div><label>CURP (Doc)</label><input type="number" id="expCurpDoc" value="0"></div>
+                            <div><label>Comprobante</label><input type="number" id="expComprobante" value="0"></div>
+                            <div><label>Acuse</label><input type="number" id="expAcuse" value="0"></div>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <label style="font-size:12px; font-weight:bold; color:#1e5b4f;">Observaciones del Expediente</label>
+                            <input type="text" id="expObs" placeholder="Observaciones adicionales..." style="width:100%; box-sizing:border-box;">
+                        </div>
+                        <button class="btn-add" style="margin-top:12px; width:100%;" onclick='agregarExpedienteLista(${JSON.stringify(reg)})'>➕ Agregar al Lote de Expedientes</button>
+                    </div>
+                `;
+            } catch(e) {
+                contenedor.innerHTML = "<p style="color:red;">Error al realizar la búsqueda.</p>";
+            }
+        }
+
+        function agregarExpedienteLista(reg) {
+            const caja = document.getElementById('expCaja').value.trim();
+            const fojas = parseInt(document.getElementById('expFojas').value) || 0;
+            const ine = parseInt(document.getElementById('expIne').value) || 0;
+            const acta = parseInt(document.getElementById('expActa').value) || 0;
+            const curpDoc = parseInt(document.getElementById('expCurpDoc').value) || 0;
+            const comp = parseInt(document.getElementById('expComprobante').value) || 0;
+            const acuse = parseInt(document.getElementById('expAcuse').value) || 0;
+            const obs = document.getElementById('expObs').value.trim();
+
+            if(!caja) return alert("Debe especificar la caja.");
+
+            // Validar si ya está agregado
+            if(loteExpedientes.some(item => item.folio === reg.FOLIO)) return alert("Este registro ya se encuentra en la lista de expedientes.");
+
+            loteExpedientes.push({
+                rowBase: reg.rowNumber,
+                folio: reg.FOLIO,
+                nombre: reg.NOMBRE,
+                caja: caja,
+                fojas: fojas,
+                ine: ine,
+                acta: acta,
+                curpDoc: curpDoc,
+                comprobante: comp,
+                acuse: acuse,
+                observaciones: obs
+            });
+
+            document.getElementById('valorBusquedaExp').value = "";
+            document.getElementById('contenedor-resultado-exp').innerHTML = "";
+            actualizarTablaInterfazExp();
+        }
+
+        function eliminarExpedienteLocal(index) {
+            loteExpedientes.splice(index, 1);
+            actualizarTablaInterfazExp();
+        }
+
+        function actualizarTablaInterfazExp() {
+            const area = document.getElementById('area-lote-exp');
+            const tbody = document.getElementById('lote-exp-body');
+            document.getElementById('contador-lote-exp').innerText = loteExpedientes.length;
+            if(loteExpedientes.length === 0) { area.style.display = 'none'; tbody.innerHTML = ''; return; }
+            area.style.display = 'block'; tbody.innerHTML = '';
+            loteExpedientes.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${escaparHTML(item.folio)}</b></td>
+                    <td>${escaparHTML(item.nombre)}</td>
+                    <td><span class="status-badge status-badge-envio">${escaparHTML(item.caja)}</span></td>
+                    <td>${item.fojas}</td>
+                    <td>${item.ine}</td>
+                    <td>${item.acta}</td>
+                    <td>${item.curpDoc}</td>
+                    <td>${item.comprobante}</td>
+                    <td>${item.acuse}</td>
+                    <td><small>${escaparHTML(item.observaciones) || 'S/O'}</small></td>
+                    <td><button class="btn-del" onclick="eliminarExpedienteLocal(${index})">Quitar</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function enviarExpedientesAlServidor() {
+            if(loteExpedientes.length === 0) return;
+            const btn = document.getElementById('btnEnviarBloqueExp');
+            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes a partir de la columna W y generar el reporte en Excel?`)) return;
+            btn.innerText = "Procesando y generando reporte..."; btn.disabled = true;
+
+            try {
+                const res = await enviarPeticion({ action: "guardar_expedientes_y_reporte", lote: loteExpedientes });
+                if(res.exito) {
+                    let mensajeFinal = `¡Éxito total!\n- Se actualizaron los datos en la hoja Base (Columna W en adelante).\n- Se generó el reporte en Google Drive.`;
+                    if(res.fileUrl) {
+                        mensajeFinal += `\n\n¿Deseas abrir el archivo Excel generado?`;
+                        if(confirm(mensajeFinal)) {
+                            window.open(res.fileUrl, '_blank');
+                        }
+                    } else {
+                        alert(mensajeFinal);
+                    }
+                    loteExpedientes = [];
+                    actualizarTablaInterfazExp();
+                } else {
+                    alert("Error: " + res.error);
+                }
+            } catch(e) {
+                alert("Error de comunicación con el servidor.");
+            } finally {
+                btn.innerText = "📊 Actualizar Base y Generar Reporte Excel";
+                btn.disabled = false;
+            }
+        }
+        // --- FIN FUNCIONES EXPEDIENTES ---
 
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
@@ -590,89 +650,63 @@
 
         function obtenerBadgeEstatus(estatus) {
             if (!estatus) return `<span class="status-badge status-badge-default">S/E</span>`;
-            
             const estatusMayus = estatus.toUpperCase().trim();
             let claseEstatus = 'status-badge-default';
-
-            if (estatusMayus.includes('ENTREGADA')) {
-                claseEstatus = 'status-badge-entregada';
-            } else if (estatusMayus.includes('SOBRANTE')) {
-                claseEstatus = 'status-badge-sobrante';
-            } else if (estatusMayus.includes('ENVIADA') || estatusMayus.includes('OTRO') || estatusMayus.includes('SARE')) {
-                claseEstatus = 'status-badge-envio';
-            }
-
+            if (estatusMayus.includes('ENTREGADA')) claseEstatus = 'status-badge-entregada';
+            else if (estatusMayus.includes('SOBRANTE')) claseEstatus = 'status-badge-sobrante';
+            else if (estatusMayus.includes('ENVIADA') || estatusMayus.includes('OTRO') || estatusMayus.includes('SARE')) claseEstatus = 'status-badge-envio';
             return `<span class="status-badge ${claseEstatus}">${escaparHTML(estatus)}</span>`;
         }
 
         async function ejecutarBusqueda() {
             const valor = document.getElementById('valorBusqueda').value.trim();
             const columna = document.getElementById('columnaBusqueda').value;
-            const tablaDestino = document.getElementById('tipoTablaBusqueda').value; // Tarjetas o Tramites
-            const subPersona = document.getElementById('subTipoPersona').value;      // Tutor o Menor
-
             const contenedor = document.getElementById('contenedor-resultados');
             if (!valor) return alert("Por favor ingresa un valor.");
             contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
 
             try {
-                // AQUÍ SE ENVÍAN LOS NUEVOS PARÁMETROS AL SCRIPT
-                const resultados = await enviarPeticion({ 
-                    action: "buscar", 
-                    columna: columna, 
-                    valor: valor,
-                    tabla: tablaDestino,
-                    persona: subPersona
-                });
-                
+                const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
                 if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
                 if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
 
-                // GENERACIÓN DINÁMICA DE TABLA
-                let html = `<div class="contenedor-tabla"><table><thead><tr>`;
-                
-                // Extraer encabezados del primer resultado
-                const encabezados = Object.keys(resultados[0]);
-                encabezados.forEach(h => {
-                    html += `<th>${escaparHTML(h)}</th>`;
-                });
-                html += `</tr></thead><tbody>`;
-                
-                // Rellenar datos
+                let html = `<div class="contenedor-tabla"><table><thead><tr>
+                            <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th>
+                            </tr></thead><tbody>`;
                 resultados.forEach(f => {
-                    html += `<tr>`;
-                    encabezados.forEach(h => {
-                        if(h.toUpperCase() === 'ESTATUS') {
-                            html += `<td>${obtenerBadgeEstatus(f[h])}</td>`;
-                        } else if(h.toUpperCase() === 'FOLIO') {
-                            html += `<td><b>${escaparHTML(f[h] || '')}</b></td>`;
-                        } else {
-                            html += `<td>${escaparHTML(f[h] || '')}</td>`;
-                        }
-                    });
-                    html += `</tr>`;
+                    const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
+                    html += `<tr>
+                                <td><b>${escaparHTML(f.FOLIO)}</b></td>
+                                <td>${escaparHTML(f.NOMBRE)}</td>
+                                <td>${estatusHTML}</td>
+                                <td>${escaparHTML(f.SARE)}</td>
+                                <td>${escaparHTML(f.MUNICIPIO)}</td>
+                                <td>${escaparHTML(f.CCT)}</td>
+                                <td>${escaparHTML(f.ESCUELA)}</td>
+                                <td>${escaparHTML(f.NIVEL)}</td>
+                                <td>${escaparHTML(f.CURP)}</td>
+                                <td>${escaparHTML(f.MES_REMESA)}</td>
+                                <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
+                             </tr>`;
                 });
-                html += '</tbody></table></div>'; 
-                contenedor.innerHTML = html;
+                html += '</tbody></table></div>'; contenedor.innerHTML = html;
             } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
         }
 
         async function cerrarSesion() {
             detenerTemporizadorInactividad();
-            
             if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) {
                 iniciarTemporizadorInactividad();
                 return;
             }
-            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = [];
-            
+            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = []; loteExpedientes = [];
             document.getElementById('user').value = '';
             document.getElementById('pass').value = '';
-
             document.getElementById('contenedor-resultados').innerHTML = '';
             document.getElementById('contenedor-bitacora').innerHTML = '';
             document.getElementById('valorBusqueda').value = '';
             document.getElementById('area-lote-temporal').style.display = 'none';
+            document.getElementById('area-lote-exp').style.display = 'none';
             document.getElementById('app-section').style.display = 'none';
             document.getElementById('login-section').style.display = 'block';
         }
