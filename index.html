@@ -76,7 +76,6 @@
         .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
         .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
 
-        /* --- DISEÑO DE TABLAS Y CONTENEDORES --- */
         .contenedor-tabla { 
             overflow-x: auto; 
             margin-top: 20px; 
@@ -101,7 +100,6 @@
         .btn-del { background: #c62828; padding: 6px 12px; font-size: 12px; border-radius: 4px; }
         .btn-del:hover { background: #b71c1c; }
 
-        /* --- SISTEMA DE RESALTADO DE ESTATUS (BADGES) --- */
         .status-badge {
             display: inline-block;
             padding: 5px 12px;
@@ -118,7 +116,6 @@
         .status-badge-envio { background-color: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
         .status-badge-default { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
 
-        /* Estilos específicos para el nuevo módulo de Expedientes */
         .card-busqueda-exp { background: #f0f7f4; padding: 20px; border-radius: 8px; border: 1px solid #c2dcd3; margin-top: 15px; }
         .grid-docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
         .grid-docs label { font-size: 12px; font-weight: bold; color: #1e5b4f; display: block; margin-bottom: 3px; }
@@ -127,7 +124,6 @@
 </head>
 <body>
 
-    <!-- CONTROL DE ACCESO -->
     <div id="login-section" class="tarjeta">
         <img src="Imagen11.png" alt="Logo" class="logo-app">
         <h2>Acceso al Sistema</h2>
@@ -139,13 +135,11 @@
         <div id="login-mensaje" style="color: red; font-weight: bold; margin-top: 10px;"></div>
     </div>
 
-    <!-- CUERPO CENTRAL -->
     <div id="app-section" class="tarjeta">
         <img src="Imagen11.png" alt="Logo" class="logo-app">
       <img src="user___Imagen4t (5).gif" alt="saludo"> 
         <h2 id="saludo-usuario">Buscador de Registros</h2>
         
-        <!-- CONSULTAS -->
         <div id="panel-busqueda">
             <h3>Módulo de Consulta</h3>
             <div class="controles-busqueda">
@@ -160,7 +154,6 @@
             <div id="contenedor-resultados"></div>
         </div>
 
-        <!-- MÓDULO NUEVO: BÚSQUEDA Y GESTIÓN DE EXPEDIENTES (DESPUÉS DEL MÓDULO DE ACTUALIZACIÓN POR BLOQUES) -->
         <div id="panel-expedientes" class="sub-panel" style="display: block;">
             <h3>Módulo de Expedientes y Reportes Excel</h3>
             <div class="card-busqueda-exp">
@@ -188,7 +181,6 @@
             </div>
         </div>
 
-        <!-- CAPTURA INTERMEDIA (LOTES) -->
         <div id="panel-edicion" class="sub-panel">
             <h3>Módulo de Edición (Captura por Bloques)</h3>
             <div class="form-edicion">
@@ -224,7 +216,6 @@
             </div>
         </div>
 
-        <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
             <div class="panel-bitacora">
                 <h3>Visualizador de Bitácora</h3>
@@ -251,7 +242,6 @@
                 <div id="contenedor-bitacora"></div>
             </div>
 
-            <!-- PANEL DE SEGURIDAD -->
             <div class="panel-bloqueo">
                 <h3>Control de Seguridad (Solo Administradores)</h3>
                 <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
@@ -266,13 +256,12 @@
     </div>
 
     <script>
-        // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxjaq4wQ0YLaCNEwCIt39tHh7QXQKccOBVu5tFI5xjnbNwWAgM9huIaYanbPp42NYrmJg/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycby91cMqc3L51m_Cog52xMAolilZUjGL0WREIe18nu2vY35eltVx7Yp0nBx9yJ9LktOg8w/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
-        let loteExpedientes = []; // Array para el nuevo módulo de expedientes
+        let loteExpedientes = [];
 
         let timerInactividad;
         const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
@@ -341,7 +330,7 @@
             document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
-            document.getElementById('panel-expedientes').style.display = 'block'; // Visible para usuarios autenticados
+            document.getElementById('panel-expedientes').style.display = 'block';
 
             iniciarTemporizadorInactividad();
 
@@ -486,7 +475,6 @@
             finally { btn.innerText = "🚀 Enviar todo el Bloque"; btn.disabled = false; }
         }
 
-        // --- FUNCIONES NUEVAS: MÓDULO DE EXPEDIENTES ---
         async function buscarParaExpediente() {
             const val = document.getElementById('valorBusquedaExp').value.trim();
             const contenedor = document.getElementById('contenedor-resultado-exp');
@@ -494,7 +482,6 @@
             contenedor.innerHTML = "<p>Buscando registro...</p>";
 
             try {
-                // Buscamos probando por Folio, luego Nombre o CURP automáticamente mediante el backend
                 let res = await enviarPeticion({ action: "buscar_expediente_unico", valor: val });
                 if(res.error || !res.registro) {
                     contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${res.error || "No se encontró ningún registro con ese valor."}</p>`;
@@ -521,7 +508,7 @@
                     </div>
                 `;
             } catch(e) {
-                contenedor.innerHTML = "<p style="color:red;">Error al realizar la búsqueda.</p>";
+                contenedor.innerHTML = "<p style='color:red;'>Error al realizar la búsqueda.</p>";
             }
         }
 
@@ -537,7 +524,6 @@
 
             if(!caja) return alert("Debe especificar la caja.");
 
-            // Validar si ya está agregado
             if(loteExpedientes.some(item => item.folio === reg.FOLIO)) return alert("Este registro ya se encuentra en la lista de expedientes.");
 
             loteExpedientes.push({
@@ -619,7 +605,6 @@
                 btn.disabled = false;
             }
         }
-        // --- FIN FUNCIONES EXPEDIENTES ---
 
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
