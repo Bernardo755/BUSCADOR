@@ -3,813 +3,560 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA DE BUSQUEDA</title>
+    <title>Sistema de Gestión de Expedientes</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: rgb(30, 91, 79); 
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px 0;
+        :root {
+            --primary: #1976d2;
+            --secondary: #f5f5f5;
+            --text: #333;
+            --border: #e0e0e0;
+            --success: #2e7d32;
+            --danger: #c62828;
+            --warning: #f57c00;
         }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eaeff1; margin: 0; padding: 20px; color: var(--text); }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #2c3e50; }
         
-        .tarjeta {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 95%;
-            max-width: 1050px;
-            margin-bottom: 20px;
-        }
-        .logo-app { 
-            width: 100%; 
-            max-width: 600px;
-            height: auto; 
-            margin-bottom: 30px;
-        }
-        #login-section { display: block; max-width: 400px; margin: 0 auto; }
-        #app-section { display: none; }
+        /* Formularios y Botones */
+        input, select, button { padding: 10px; margin: 5px 0; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        button:hover { background-color: #1565c0; }
+        button:disabled { background-color: #90caf9; cursor: not-allowed; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #b71c1c; }
         
-        .sub-panel { display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }
+        /* Pestañas */
+        .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; color: #666; border-bottom: 3px solid transparent; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         
-        .controles-busqueda, .form-edicion, .form-admin {
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
+        /* Tablas */
+        .contenedor-tabla { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+        th { background-color: #f8f9fa; color: #444; font-weight: 600; text-transform: uppercase; }
+        tr:hover { background-color: #f1f5f9; }
         
-        input, select, button, textarea { 
-            padding: 12px; 
-            font-size: 15px; 
-            border: 1px solid #ccc; 
-            border-radius: 6px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: rgb(30, 91, 79);
-            box-shadow: 0 0 0 3px rgba(30, 91, 79, 0.15);
-        }
-        textarea { resize: vertical; font-family: inherit; }
+        /* Badges de estatus */
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block; }
+        .status-badge-entregada { background-color: var(--success); }
+        .status-badge-sobrante { background-color: var(--warning); }
+        .status-badge-envio { background-color: var(--primary); }
+        .status-badge-default { background-color: #757575; }
         
-        button { background-color: rgb(156, 35, 72); color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: rgb(120, 25, 55); transform: translateY(-1px); }
-        button:active { transform: translateY(1px); }
+        /* Tarjeta de información completa (Fila) */
+        .info-fila { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .info-fila h4 { margin-top: 0; color: var(--primary); margin-bottom: 10px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 13px; }
         
-        .btn-add { background-color: #2e7d32; }
-        .btn-add:hover { background-color: #1b5e20; }
-        .btn-send-block { background-color: #0288d1; width: 100%; font-size: 18px; margin-top: 15px; }
-        .btn-send-block:hover { background-color: #01579b; }
-        .btn-logout { background-color: #555; width: 100%; margin-top: 30px;}
-        .btn-logout:hover { background-color: #333; }
+        /* Grid para inputs de expedientes */
+        .docs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; background: #fff3e0; padding: 15px; border-radius: 8px; border: 1px solid #ffe0b2; margin-bottom: 15px; }
+        .docs-grid label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; color: #e65100; }
+        .docs-grid input { width: 100%; }
         
-        .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
-        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
-
-        .contenedor-tabla { 
-            overflow-x: auto; 
-            margin-top: 20px; 
-            border: 1px solid #e0e0e0; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: white; text-align: left; }
-        th { 
-            background: rgb(24, 73, 63); 
-            color: white; 
-            padding: 14px 16px; 
-            text-transform: uppercase; 
-            font-size: 12px;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-        td { padding: 12px 16px; border-bottom: 1px solid #eff2f1; white-space: nowrap; color: #333; }
-        tr:hover { background-color: rgba(30, 91, 79, 0.04); }
-        
-        .tabla-lote th { background: #37474f; }
-        .btn-del { background: #c62828; padding: 6px 12px; font-size: 12px; border-radius: 4px; }
-        .btn-del:hover { background: #b71c1c; }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 12px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .status-badge-entregada { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-        .status-badge-sobrante { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-        .status-badge-envio { background-color: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
-        .status-badge-default { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
-
-        .card-busqueda-exp { background: #f0f7f4; padding: 20px; border-radius: 8px; border: 1px solid #c2dcd3; margin-top: 15px; }
-        .grid-docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
-        .grid-docs label { font-size: 12px; font-weight: bold; color: #1e5b4f; display: block; margin-bottom: 3px; }
-        .grid-docs input { width: 100%; box-sizing: border-box; text-align: center; padding: 8px; }
-        
-        .alerta-suma {
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-size: 13px;
-            font-weight: bold;
-        }
+        /* Utilidades */
+        .btn-del { background-color: var(--danger); padding: 5px 10px; font-size: 11px; }
+        #login-section { max-width: 400px; margin: 100px auto; text-align: center; }
+        #login-section input { width: 100%; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div id="login-section" class="tarjeta">
-        <img src="Imagen11.png" alt="Logo" class="logo-app">
+<div class="container">
+    
+    <!-- SECCIÓN DE LOGIN -->
+    <div id="login-section">
         <h2>Acceso al Sistema</h2>
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            <input type="text" id="user" placeholder="Usuario">
-            <input type="password" id="pass" placeholder="Contraseña">
-            <button onclick="iniciarSesion()">Entrar</button>
-        </div>
-        <div id="login-mensaje" style="color: red; font-weight: bold; margin-top: 10px;"></div>
+        <input type="text" id="user" placeholder="Usuario" autocomplete="off">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button onclick="login()" id="btn-login" style="width:100%">Iniciar Sesión</button>
+        <p id="login-msg" style="color:red; font-size:14px; display:none;"></p>
     </div>
 
-    <div id="app-section" class="tarjeta">
-        <img src="Imagen11.png" alt="Logo" class="logo-app">
-        <img src="user___Imagen4t (5).gif" alt="saludo"> 
-        <h2 id="saludo-usuario">Buscador de Registros</h2>
-        
-        <div id="panel-busqueda">
-            <h3>Módulo de Consulta</h3>
-            <div class="controles-busqueda">
-                <input type="text" id="valorBusqueda" placeholder="Valor a buscar...">
+    <!-- SECCIÓN PRINCIPAL DE LA APP -->
+    <div id="app-section" style="display:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Gestor de Expedientes</h2>
+            <div>
+                <span id="user-info" style="margin-right: 15px; font-weight: bold; color: var(--primary);"></span>
+                <button class="btn-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="mostrarPestana('tab-busqueda', this)">Búsqueda General</div>
+            <div class="tab" onclick="mostrarPestana('tab-expedientes', this)">Armado de Expedientes</div>
+            <div class="tab" id="tab-admin-btn" style="display:none;" onclick="mostrarPestana('tab-admin', this)">Administración</div>
+        </div>
+
+        <!-- PESTAÑA: BÚSQUEDA GENERAL -->
+        <div id="tab-busqueda" class="tab-content active">
+            <h3>Consultar Base de Datos</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <select id="columnaBusqueda">
-                    <option value="Nombre">Nombre</option>
+                    <option value="FOLIO">Folio</option>
+                    <option value="NOMBRE">Nombre</option>
                     <option value="CURP">CURP</option>
-                    <option value="Folio">Folio</option>
+                    <option value="CCT">CCT</option>
                 </select>
+                <input type="text" id="valorBusqueda" placeholder="Ingrese el dato a buscar..." style="flex:1;" onkeypress="if(event.key === 'Enter') ejecutarBusqueda()">
                 <button onclick="ejecutarBusqueda()">Buscar</button>
             </div>
             <div id="contenedor-resultados"></div>
         </div>
 
-        <div id="panel-edicion" class="sub-panel">
-            <h3>Módulo de Edición (Captura por Bloques)</h3>
-            <div class="form-edicion">
-                <label style="font-weight: bold;">Actividad a realizar</label>
-                <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
-                    <option value="">-- Selecciona una actividad --</option>
-                    <option value="SOBRANTES">REGISTRO DE SOBRANTES</option>
-                    <option value="ENTREGADAS">REGISTRO DE ENTREGADAS</option>
-                </select>
-
-                <div id="campos-edicion" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
-                    <h4 style="margin:0;">Agregar registro al bloque temporal:</h4>
-                    <input type="text" id="editFolio" placeholder="Escribe o escanea el Folio">
-                    <select id="editEstatus"></select>
-                    <textarea id="editObservaciones" placeholder="Observaciones (Opcional)" rows="2"></textarea>
-                    <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
-                </div>
-                
-                <div id="area-lote-temporal" style="display:none; margin-top:20px;">
-                    <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
-                    <div class="contenedor-tabla">
-                        <table class="tabla-lote">
-                            <thead>
-                                <tr>
-                                    <th>Folio</th><th>Estatus a Asignar</th><th>Observaciones</th><th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lote-body"></tbody>
-                        </table>
-                    </div>
-                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque</button>
+        <!-- PESTAÑA: ARMADO DE EXPEDIENTES -->
+        <div id="tab-expedientes" class="tab-content">
+            <h3>Preparar Lote de Expedientes y Generar Reporte</h3>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #bbdefb;">
+                <p style="margin-top:0; font-size: 14px; color: #0d47a1;">Busque el registro, valide la información completa de la fila, asigne caja, fojas e integre al lote. Al finalizar, envíe el lote para generar el Excel de reporte y sincronizar la Columna V.</p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="valorBusquedaExp" placeholder="Buscar por Folio, CURP o Nombre..." style="flex:1;" onkeypress="if(event.key === 'Enter') buscarRegistroParaExp()">
+                    <button onclick="buscarRegistroParaExp()">Buscar Registro</button>
                 </div>
             </div>
-        </div>
 
-        <div id="panel-expedientes" class="sub-panel" style="display: block;">
-            <h3>Módulo de Expedientes y Reportes Excel</h3>
-            
-            <div class="card-busqueda-exp">
-                <h4 style="margin:0 0 10px 0; color:#18493f;">Buscar registro para agregar al lote de expedientes:</h4>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="valorBusquedaExp" placeholder="Valor a buscar..." style="flex: 1; min-width: 200px;">
-                    <select id="columnaBusquedaExp">
-                        <option value="Nombre">Nombre</option>
-                        <option value="CURP">CURP</option>
-                        <option value="Folio">Folio</option>
-                    </select>
-                    <button onclick="buscarParaExpediente()" class="btn-add">🔍 Buscar en Base</button>
-                </div>
-                <div id="contenedor-resultado-exp" style="margin-top: 15px;"></div>
-            </div>
+            <!-- Aquí se renderiza la info completa de la fila y el formulario -->
+            <div id="contenedor-resultado-exp"></div>
 
-            <div id="area-lote-exp" style="display:none; margin-top:25px;">
-                <h4 style="margin:0; color: #37474f;">Registros de Expedientes Acumulados (<span id="contador-lote-exp">0</span>):</h4>
+            <!-- Área del Lote Acumulado -->
+            <div id="area-lote-exp" style="display:none; margin-top: 30px;">
+                <h3 style="color: var(--success); border-bottom: 2px solid var(--success); padding-bottom: 5px;">
+                    Expedientes Listos para Reporte (<span id="contador-lote-exp">0</span>)
+                </h3>
                 <div class="contenedor-tabla">
-                    <table class="tabla-lote">
+                    <table>
                         <thead>
                             <tr>
-                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>Suma Docs</th><th>INE</th><th>Acta</th><th>CURP</th><th>Comp.</th><th>Acuse</th><th>Obs.</th><th>Acción</th>
+                                <th>FOLIO</th>
+                                <th>NOMBRE</th>
+                                <th>CAJA</th>
+                                <th>FOJAS (Validación)</th>
+                                <th>INE</th>
+                                <th>ACTA</th>
+                                <th>CURP</th>
+                                <th>COMP.</th>
+                                <th>ACUSE</th>
+                                <th>OBSERVACIONES</th>
+                                <th>ACCIÓN</th>
                             </tr>
                         </thead>
                         <tbody id="lote-exp-body"></tbody>
                     </table>
                 </div>
-                <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base (Columna V) y Generar Reporte Excel</button>
-            </div>
-
-            <div id="panel-busqueda-secundario" style="margin-top: 35px; border-top: 1px dashed #b2dfdb; padding-top: 20px;">
-                <h3 style="color: #18493f; margin-bottom: 10px;">Módulo de Búsqueda Avanzada</h3>
-                <div class="controles-busqueda">
-                    <input type="text" id="valorBusqueda2" placeholder="Valor secundario a buscar...">
-                    <select id="columnaBusqueda2">
-                        <option value="Nombre">Nombre</option>
-                        <option value="CURP">CURP</option>
-                        <option value="Folio">Folio</option>
-                    </select>
-                    <button onclick="ejecutarBusquedaSecundaria()" style="background-color: #1e5b4f;">Buscar</button>
-                </div>
-                <div id="contenedor-resultados2"></div>
-            </div>
-        </div>
-
-        <div id="panel-admin" class="sub-panel">
-            <div class="panel-bitacora">
-                <h3>Visualizador de Bitácora</h3>
-                <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
-                
-                <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
-                        <select id="filtroBitacoraFecha" onchange="buscarEnBitacora()">
-                            <option value="">Cargando fechas...</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario Activo:</label>
-                        <select id="filtroBitacoraUsuario" onchange="buscarEnBitacora()">
-                            <option value="">Cargando usuarios...</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; align-items: flex-end;">
-                        <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
-                    </div>
-                </div>
-                
-                <div id="contenedor-bitacora"></div>
-            </div>
-
-            <div class="panel-bloqueo">
-                <h3>Control de Seguridad (Solo Administradores)</h3>
-                <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
-                <div class="form-admin">
-                    <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
-                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
+                <div style="text-align: right; margin-top: 15px;">
+                    <button id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: var(--success); font-size: 16px; padding: 12px 24px;">
+                        📊 Actualizar Columna V y Generar Reporte Excel
+                    </button>
                 </div>
             </div>
         </div>
 
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+        <!-- PESTAÑA: ADMINISTRACIÓN -->
+        <div id="tab-admin" class="tab-content">
+            <h3>Gestión de Usuarios</h3>
+            <div style="background: #ffebee; padding: 15px; border-radius: 8px; border: 1px solid #ffcdd2;">
+                <p style="margin-top:0; color: #b71c1c;">Selecciona un usuario para revocar su acceso permanentemente.</p>
+                <select id="listaUsuariosAdmin" style="width: 300px;">
+                    <option>Cargando usuarios...</option>
+                </select>
+                <button class="btn-danger" onclick="ejecutarBloqueo()">Bloquear Usuario</button>
+            </div>
+        </div>
+
     </div>
+</div>
 
-    <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzYMKBNPqwsokpWBPfmkTNpgJdnFzVKIv3eeXuZyGyiPEE1KrCJLIf8q1flppuypwZCcg/exec';
-        let usuarioActual = ""; 
-        let rolActual = "";
-        let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
-        let loteTemporal = [];
-        let loteExpedientes = [];
+<script>
+    /* =====================================================================
+       CONFIGURACIÓN Y VARIABLES GLOBALES
+       ===================================================================== */
+    // Reemplaza esto con la URL de tu Google Apps Script implementado
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyw71nAMoopd3-dxmTOAVu5zMHJHmrCq6UdSXL712T1DV9FuB67OV8Ci81M8zPuSAFMUA/exec"; 
+    
+    let usuarioActual = "";
+    let rolActual = "";
+    let loteExpedientes = []; // Guarda todos los datos de la fila + los datos nuevos
+    let registroActualExp = null; // Guarda temporalmente la fila encontrada
+    let timeoutInactividad;
 
-        let timerInactividad;
-        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
-
-        function iniciarTemporizadorInactividad() {
-            detenerTemporizadorInactividad();
-            document.addEventListener('mousemove', resetearTemporizador);
-            document.addEventListener('keypress', resetearTemporizador);
-            document.addEventListener('click', resetearTemporizador);
-            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
-        }
-
-        function detenerTemporizadorInactividad() {
-            clearTimeout(timerInactividad);
-            document.removeEventListener('mousemove', resetearTemporizador);
-            document.removeEventListener('keypress', resetearTemporizador);
-            document.removeEventListener('click', resetearTemporizador);
-        }
-
-        function resetearTemporizador() {
-            clearTimeout(timerInactividad);
-            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
-        }
-
-        function cerrarSesionPorInactividad() {
-            alert("Tu sesión ha expirado por inactividad.");
-            cerrarSesion();
-        }
-
-        document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
-        document.getElementById('valorBusqueda').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
-        document.getElementById('valorBusqueda2').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
-        document.getElementById('editFolio').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
-        document.getElementById('valorBusquedaExp').addEventListener('keydown', e => { if (e.key === 'Enter') buscarParaExpediente(); });
-
-        window.onload = async function() {
-            if(sessionStorage.getItem("usuarioActual")) {
-                usuarioActual = sessionStorage.getItem("usuarioActual");
-                rolActual = sessionStorage.getItem("rolActual");
-                configurarVistasPorRol(rolActual);
-            }
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                datosDispositivo.ip = data.ip || "No disponible";
-                datosDispositivo.ubicacion = data.city ? `${data.city}, ${data.region}, ${data.country_name}` : "No disponible";
-            } catch (error) {
-                datosDispositivo.ip = "No disponible"; datosDispositivo.ubicacion = "No disponible";
-            }
-        };
-
-        async function enviarPeticion(datos) {
-            datos.usuario = usuarioActual;
-            datos.ip = datosDispositivo.ip;
-            datos.ubicacion = datosDispositivo.ubicacion;
-            const respuesta = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(datos),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    /* =====================================================================
+       UTILIDADES CORE (Peticiones y Seguridad)
+       ===================================================================== */
+    async function enviarPeticion(payload) {
+        if(usuarioActual) payload.usuario = usuarioActual;
+        try {
+            const response = await fetch(URL_WEB_APP, {
+                method: "POST",
+                body: JSON.stringify(payload)
             });
-            return await respuesta.json();
+            return await response.json();
+        } catch (error) {
+            console.error("Error en la petición:", error);
+            return { exito: false, error: "Error de conexión con el servidor." };
         }
+    }
 
-        function configurarVistasPorRol(rol) {
+    function iniciarTemporizadorInactividad() {
+        clearTimeout(timeoutInactividad);
+        timeoutInactividad = setTimeout(() => {
+            alert("Sesión cerrada por inactividad.");
+            cerrarSesion();
+        }, 30 * 60 * 1000); // 30 minutos
+    }
+
+    function detenerTemporizadorInactividad() {
+        clearTimeout(timeoutInactividad);
+    }
+
+    window.onload = function() {
+        document.addEventListener('mousemove', iniciarTemporizadorInactividad);
+        document.addEventListener('keypress', iniciarTemporizadorInactividad);
+    };
+
+    function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
+
+    function mostrarPestana(idTab, elementoFicha) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(idTab).classList.add('active');
+        elementoFicha.classList.add('active');
+    }
+
+    /* =====================================================================
+       MÓDULO DE LOGIN
+       ===================================================================== */
+    async function login() {
+        const u = document.getElementById('user').value.trim();
+        const p = document.getElementById('pass').value.trim();
+        const msg = document.getElementById('login-msg');
+        const btn = document.getElementById('btn-login');
+
+        if(!u || !p) { msg.innerText = "Ingresa usuario y contraseña"; msg.style.display = 'block'; return; }
+        
+        btn.innerText = "Autenticando..."; btn.disabled = true; msg.style.display = 'none';
+
+        const res = await enviarPeticion({ action: "login", user: u, pass: p });
+        
+        btn.innerText = "Iniciar Sesión"; btn.disabled = false;
+
+        if (res.exito) {
+            usuarioActual = u; rolActual = res.rol;
+            document.getElementById('user-info').innerText = `👤 ${u} (${rolActual})`;
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
-            document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
-            document.getElementById('panel-edicion').style.display = 'none';
-            document.getElementById('panel-admin').style.display = 'none';
-            document.getElementById('panel-expedientes').style.display = 'block';
-
-            iniciarTemporizadorInactividad();
-
-            if (rol === "ATENCION" || rol === "ADMIN") {
-                document.getElementById('panel-edicion').style.display = 'block';
-            }
-            if (rol === "ADMIN") {
-                document.getElementById('panel-admin').style.display = 'block';
+            
+            if(rolActual === 'ADMIN') {
+                document.getElementById('tab-admin-btn').style.display = 'block';
                 cargarUsuariosParaAdmin();
-                cargarFiltrosDesplegablesBitacora();
+            } else {
+                document.getElementById('tab-admin-btn').style.display = 'none';
             }
+            iniciarTemporizadorInactividad();
+        } else {
+            msg.innerText = res.error; msg.style.display = 'block';
         }
+    }
 
-        async function iniciarSesion() {
-            const user = document.getElementById('user').value.trim();
-            const pass = document.getElementById('pass').value.trim();
-            const msj = document.getElementById('login-mensaje');
-            if (!user || !pass) return msj.innerText = "Por favor, llena ambos campos.";
-            msj.innerText = "Validando...";
-
-            try {
-                usuarioActual = user;
-                const res = await enviarPeticion({ action: "login", password: pass });
-                if (res.exito) {
-                    rolActual = res.rol;
-                    sessionStorage.setItem("usuarioActual", user);
-                    sessionStorage.setItem("rolActual", rolActual);
-                    msj.innerText = "";
-                    configurarVistasPorRol(rolActual);
-                } else {
-                    msj.innerText = res.error;
-                    usuarioActual = "";
-                }
-            } catch (e) { msj.innerText = "Error en conexión con el servidor."; }
+    async function cerrarSesion() {
+        detenerTemporizadorInactividad();
+        if(loteExpedientes.length > 0 && !confirm("Tienes expedientes sin enviar a reporte. Si sales, se perderán. ¿Deseas salir?")) {
+            iniciarTemporizadorInactividad();
+            return;
         }
+        usuarioActual = ""; rolActual = ""; loteExpedientes = []; registroActualExp = null;
+        document.getElementById('user').value = '';
+        document.getElementById('pass').value = '';
+        document.getElementById('contenedor-resultados').innerHTML = '';
+        document.getElementById('contenedor-resultado-exp').innerHTML = '';
+        document.getElementById('valorBusqueda').value = '';
+        document.getElementById('valorBusquedaExp').value = '';
+        document.getElementById('area-lote-exp').style.display = 'none';
+        document.getElementById('app-section').style.display = 'none';
+        document.getElementById('login-section').style.display = 'block';
+    }
 
-        async function cargarFiltrosDesplegablesBitacora() {
-            const selectFecha = document.getElementById('filtroBitacoraFecha');
-            const selectUsuario = document.getElementById('filtroBitacoraUsuario');
-            try {
-                const filtros = await enviarPeticion({ action: "obtener_filtros_bitacora" });
-                selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
-                selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
-                if (filtros.fechas) filtros.fechas.forEach(f => {
-                    let opt = document.createElement('option'); opt.value = f; opt.innerText = f; selectFecha.appendChild(opt);
-                });
-                if (filtros.usuarios) filtros.usuarios.forEach(u => {
-                    let opt = document.createElement('option'); opt.value = u; opt.innerText = u; selectUsuario.appendChild(opt);
-                });
-            } catch (e) {}
-        }
+    function obtenerBadgeEstatus(estatus) {
+        if (!estatus) return `<span class="status-badge status-badge-default">S/E</span>`;
+        const estatusMayus = estatus.toUpperCase().trim();
+        let claseEstatus = 'status-badge-default';
+        if (estatusMayus.includes('ENTREGADA')) claseEstatus = 'status-badge-entregada';
+        else if (estatusMayus.includes('SOBRANTE')) claseEstatus = 'status-badge-sobrante';
+        else if (estatusMayus.includes('ENVIADA') || estatusMayus.includes('OTRO') || estatusMayus.includes('SARE')) claseEstatus = 'status-badge-envio';
+        return `<span class="status-badge ${claseEstatus}">${escaparHTML(estatus)}</span>`;
+    }
 
-        async function consultarBitacoraServidor(fFecha, fUsuario) {
-            const contenedor = document.getElementById('contenedor-bitacora');
-            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros...</p>';
-            try {
-                const logs = await enviarPeticion({ action: "obtener_bitacora", filtroFecha: fFecha, filtroUsuario: fUsuario });
-                if(!Array.isArray(logs) || logs.length === 0) {
-                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos.</p>';
-                    return;
-                }
-                let html = `<div class="contenedor-tabla"><table><thead><tr style="background:#004d40; color:white;"><th>Fecha / Hora</th><th>Usuario</th><th>Acción</th><th>IP</th><th>Ubicación</th></tr></thead><tbody>`;
-                logs.reverse().forEach(l => {
-                    html += `<tr><td>${escaparHTML(l.fecha)}</td><td><b>${escaparHTML(l.usuario)}</b></td><td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td><td><code>${escaparHTML(l.ip)}</code></td><td><small>${escaparHTML(l.ubicacion)}</small></td></tr>`;
-                });
-                html += '</tbody></table></div>';
-                contenedor.innerHTML = html;
-            } catch(e) { contenedor.innerHTML = '<p style="color:red;">Error de comunicación.</p>'; }
-        }
+    /* =====================================================================
+       MÓDULO 1: BÚSQUEDA GENERAL
+       ===================================================================== */
+    async function ejecutarBusqueda() {
+        const valor = document.getElementById('valorBusqueda').value.trim();
+        const columna = document.getElementById('columnaBusqueda').value;
+        const contenedor = document.getElementById('contenedor-resultados');
+        if (!valor) return alert("Por favor ingresa un valor.");
+        contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
 
-        function buscarEnBitacora() {
-            const fecha = document.getElementById('filtroBitacoraFecha').value; 
-            const usuario = document.getElementById('filtroBitacoraUsuario').value;
-            if (!fecha && !usuario) { document.getElementById('contenedor-bitacora').innerHTML = ''; return; }
-            consultarBitacoraServidor(fecha, usuario);
-        }
+        try {
+            const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
+            if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
+            if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
 
-        function limpiarYVerTodoBitacora() {
-            document.getElementById('filtroBitacoraFecha').value = "";
-            document.getElementById('filtroBitacoraUsuario').value = "";
-            consultarBitacoraServidor("", "");
-            cargarFiltrosDesplegablesBitacora();
-        }
-
-        function cambiarOpcionesEstatus() {
-            const actividad = document.getElementById('actividadRealizar').value;
-            const contenedorCampos = document.getElementById('campos-edicion');
-            const selectorEstatus = document.getElementById('editEstatus');
-            if(!actividad) { contenedorCampos.style.display = 'none'; return; }
-            contenedorCampos.style.display = 'flex';
-            selectorEstatus.innerHTML = '';
-            let opciones = (actividad === "SOBRANTES") ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"] : ["ENTREGADA", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
-            opciones.forEach(opt => {
-                let el = document.createElement('option'); el.value = opt; el.innerText = opt; selectorEstatus.appendChild(el);
+            let html = `<div class="contenedor-tabla"><table><thead><tr>
+                        <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th>
+                        </tr></thead><tbody>`;
+            resultados.forEach(f => {
+                const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
+                html += `<tr>
+                            <td><b>${escaparHTML(f.FOLIO)}</b></td>
+                            <td>${escaparHTML(f.NOMBRE)}</td>
+                            <td>${estatusHTML}</td>
+                            <td>${escaparHTML(f.SARE)}</td>
+                            <td>${escaparHTML(f.MUNICIPIO)}</td>
+                            <td>${escaparHTML(f.CCT)}</td>
+                            <td>${escaparHTML(f.ESCUELA)}</td>
+                            <td>${escaparHTML(f.NIVEL)}</td>
+                            <td>${escaparHTML(f.CURP)}</td>
+                            <td>${escaparHTML(f.MES_REMESA)}</td>
+                            <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
+                         </tr>`;
             });
+            html += '</tbody></table></div>'; 
+            contenedor.innerHTML = html;
+        } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
+    }
+
+    /* =====================================================================
+       MÓDULO 2: ARMADO DE EXPEDIENTES (CON DATOS COMPLETOS)
+       ===================================================================== */
+    async function buscarRegistroParaExp() {
+        const val = document.getElementById('valorBusquedaExp').value.trim();
+        const contenedor = document.getElementById('contenedor-resultado-exp');
+        if(!val) return;
+        contenedor.innerHTML = "<p>Buscando...</p>";
+        
+        // Buscamos dinámicamente en múltiples columnas
+        let resultados = await enviarPeticion({ action: "buscar", columna: "FOLIO", valor: val });
+        if(!resultados || resultados.length === 0 || resultados.error) {
+            resultados = await enviarPeticion({ action: "buscar", columna: "CURP", valor: val });
+        }
+        if(!resultados || resultados.length === 0 || resultados.error) {
+            resultados = await enviarPeticion({ action: "buscar", columna: "NOMBRE", valor: val });
         }
 
-        function agregarAlBloqueLocal() {
-            const folioInput = document.getElementById('editFolio');
-            const estatusInput = document.getElementById('editEstatus');
-            const obsInput = document.getElementById('editObservaciones');
-            const folio = folioInput.value.trim();
-            if(!folio) return alert("Por favor ingresa o escanea un folio.");
-            if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
-            loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
-            folioInput.value = ""; obsInput.value = ""; folioInput.focus();
-            actualizarTablaInterfazLote();
+        if(!resultados || resultados.length === 0 || resultados.error) {
+            contenedor.innerHTML = `<p style="color:red;">No se encontró información para "${escaparHTML(val)}".</p>`;
+            registroActualExp = null;
+            return;
         }
 
-        function eliminarDelBloqueLocal(index) {
-            loteTemporal.splice(index, 1);
-            actualizarTablaInterfazLote();
-        }
+        const f = resultados[0];
+        registroActualExp = f; // Guardamos TODA LA FILA temporalmente
 
-        function actualizarTablaInterfazLote() {
-            const area = document.getElementById('area-lote-temporal');
-            const tbody = document.getElementById('lote-body');
-            document.getElementById('contador-lote').innerText = loteTemporal.length;
-            if(loteTemporal.length === 0) { area.style.display = 'none'; tbody.innerHTML = ''; return; }
-            area.style.display = 'block'; tbody.innerHTML = '';
-            loteTemporal.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><b>${escaparHTML(item.folio)}</b></td><td>${escaparHTML(item.estatus)}</td><td><span style="color:#666;">${escaparHTML(item.observaciones) || 'Sin obs'}</span></td><td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>`;
-                tbody.appendChild(tr);
-            });
-        }
+        // Renderizamos la info completa y los inputs para el expediente
+        contenedor.innerHTML = `
+            <div class="info-fila">
+                <h4>Información Completa del Registro</h4>
+                <div class="info-grid">
+                    <div><b>Folio:</b> ${escaparHTML(f.FOLIO)}</div>
+                    <div><b>Nombre:</b> ${escaparHTML(f.NOMBRE)}</div>
+                    <div><b>CURP:</b> ${escaparHTML(f.CURP)}</div>
+                    <div><b>Estatus:</b> ${obtenerBadgeEstatus(f.ESTATUS)}</div>
+                    <div><b>Municipio:</b> ${escaparHTML(f.MUNICIPIO)}</div>
+                    <div><b>CCT:</b> ${escaparHTML(f.CCT)}</div>
+                    <div><b>Escuela:</b> ${escaparHTML(f.ESCUELA)}</div>
+                    <div><b>Nivel:</b> ${escaparHTML(f.NIVEL)}</div>
+                    <div><b>Remesa:</b> ${escaparHTML(f.MES_REMESA)}</div>
+                    <div><b>SARE:</b> ${escaparHTML(f.SARE)}</div>
+                </div>
+            </div>
 
-        async function enviarLoteAlServidor() {
-            if(loteTemporal.length === 0) return;
-            const btn = document.getElementById('btnEnviarBloque');
-            if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) return;
-            btn.innerText = "Procesando..."; btn.disabled = true;
-            try {
-                const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
-                if(res.exito) {
-                    let msg = `¡Éxito! Se actualizaron ${res.exitosos} registros.`;
-                    if(res.noEncontrados.length > 0) msg += `\n\nNo hallados: ${res.noEncontrados.join(", ")}`;
-                    alert(msg);
-                    loteTemporal = []; actualizarTablaInterfazLote();
-                } else { alert("Error: " + res.error); }
-            } catch(e) { alert("Error de red."); } 
-            finally { btn.innerText = "🚀 Enviar todo el Bloque"; btn.disabled = false; }
-        }
-
-        async function buscarParaExpediente() {
-            const val = document.getElementById('valorBusquedaExp').value.trim();
-            const col = document.getElementById('columnaBusquedaExp').value;
-            const contenedor = document.getElementById('contenedor-resultado-exp');
-            if(!val) return alert("Ingresa un valor para buscar.");
-            contenedor.innerHTML = "<p>Buscando registro...</p>";
-
-            try {
-                let res = await enviarPeticion({ action: "buscar_expediente_unico", valor: val, columna: col });
-                if(res.error || !res.registro) {
-                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${res.error || "No se encontró ningún registro con ese valor."}</p>`;
-                    return;
-                }
-                const reg = res.registro;
-                contenedor.innerHTML = `
-                    <div style="background:white; padding:15px; border-radius:6px; border:1px solid #b2dfdb;">
-                        <p style="margin:0 0 10px 0;"><b>Encontrado:</b> [Folio: ${escaparHTML(reg.FOLIO)}] - ${escaparHTML(reg.NOMBRE)} (CURP: ${escaparHTML(reg.CURP)})</p>
-                        <div class="grid-docs">
-                            <div><label>Caja</label><input type="text" id="expCaja" placeholder="Ej. C-1"></div>
-                            <div><label>Cantidad Fojas</label><input type="number" id="expFojas" value="0" oninput="calcularSumaDocsResto()"></div>
-                            <div><label>INE</label><input type="number" id="expIne" value="0" oninput="calcularSumaDocsResto()"></div>
-                            <div><label>Acta Nac.</label><input type="number" id="expActa" value="0" oninput="calcularSumaDocsResto()"></div>
-                            <div><label>CURP (Doc)</label><input type="number" id="expCurpDoc" value="0" oninput="calcularSumaDocsResto()"></div>
-                            <div><label>Comprobante</label><input type="number" id="expComprobante" value="0" oninput="calcularSumaDocsResto()"></div>
-                            <div><label>Acuse</label><input type="number" id="expAcuse" value="0" oninput="calcularSumaDocsResto()"></div>
-                        </div>
-                        <div class="alerta-suma" id="alertaSumaDoc">
-                            Suma de documentos (INE + Acta + CURP + Comp. + Acuse): <span id="lblSumaDocs">0</span> | Fojas declaradas: <span id="lblFojasVal">0</span>
-                        </div>
-                        <div style="margin-top:10px;">
-                            <label style="font-size:12px; font-weight:bold; color:#1e5b4f;">Observaciones del Expediente</label>
-                            <input type="text" id="expObs" placeholder="Observaciones adicionales..." style="width:100%; box-sizing:border-box;">
-                        </div>
-                        <button class="btn-add" style="margin-top:12px; width:100%;" onclick='agregarExpedienteLista(${JSON.stringify(reg)})'>➕ Agregar al Lote de Expedientes</button>
+            <div style="background: #fff; padding: 15px; border: 1px solid var(--border); border-radius: 8px;">
+                <h4 style="margin-top:0; color:#333;">Integrar a Expediente</h4>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <div style="flex:1;">
+                        <label style="font-size:12px; font-weight:bold;">Asignar a Caja:</label>
+                        <input type="text" id="cajaExp" placeholder="Ej: CAJA 1" style="width:100%; text-transform:uppercase;">
                     </div>
-                `;
-                calcularSumaDocsResto();
-            } catch(e) {
-                contenedor.innerHTML = "<p style='color:red;'>Error al realizar la búsqueda.</p>";
-            }
-        }
+                    <div style="flex:1;">
+                        <label style="font-size:12px; font-weight:bold; color:var(--primary);">Total Fojas Físicas:</label>
+                        <input type="number" id="fojasExp" min="0" value="0" style="width:100%; border:2px solid var(--primary);">
+                    </div>
+                </div>
 
-        function calcularSumaDocsResto() {
-            const fojas = parseInt(document.getElementById('expFojas').value) || 0;
-            const ine = parseInt(document.getElementById('expIne').value) || 0;
-            const acta = parseInt(document.getElementById('expActa').value) || 0;
-            const curpDoc = parseInt(document.getElementById('expCurpDoc').value) || 0;
-            const comp = parseInt(document.getElementById('expComprobante').value) || 0;
-            const acuse = parseInt(document.getElementById('expAcuse').value) || 0;
-            
-            const sumaDocs = ine + acta + curpDoc + comp + acuse;
-            
-            const lblSuma = document.getElementById('lblSumaDocs');
-            const lblFojas = document.getElementById('lblFojasVal');
-            const contenedorAlerta = document.getElementById('alertaSumaDoc');
-            
-            if(lblSuma) lblSuma.innerText = sumaDocs;
-            if(lblFojas) lblFojas.innerText = fojas;
-            
-            if(contenedorAlerta) {
-                if(sumaDocs === fojas) {
-                    contenedorAlerta.style.background = "#d4edda";
-                    contenedorAlerta.style.borderColor = "#c3e6cb";
-                    contenedorAlerta.style.color = "#155724";
-                } else {
-                    contenedorAlerta.style.background = "#fff3cd";
-                    contenedorAlerta.style.borderColor = "#ffeeba";
-                    contenedorAlerta.style.color = "#856404";
-                }
-            }
-        }
+                <div class="docs-grid">
+                    <div><label>1. INE (Cant)</label><input type="number" id="ineExp" min="0" value="0"></div>
+                    <div><label>2. ACTA (Cant)</label><input type="number" id="actaExp" min="0" value="0"></div>
+                    <div><label>3. CURP (Cant)</label><input type="number" id="curpDocExp" min="0" value="0"></div>
+                    <div><label>4. COMP. (Cant)</label><input type="number" id="compExp" min="0" value="0"></div>
+                    <div><label>5. ACUSE (Cant)</label><input type="number" id="acuseExp" min="0" value="0"></div>
+                </div>
 
-        function agregarExpedienteLista(reg) {
-            const caja = document.getElementById('expCaja').value.trim();
-            const fojas = parseInt(document.getElementById('expFojas').value) || 0;
-            const ine = parseInt(document.getElementById('expIne').value) || 0;
-            const acta = parseInt(document.getElementById('expActa').value) || 0;
-            const curpDoc = parseInt(document.getElementById('expCurpDoc').value) || 0;
-            const comp = parseInt(document.getElementById('expComprobante').value) || 0;
-            const acuse = parseInt(document.getElementById('expAcuse').value) || 0;
-            const obs = document.getElementById('expObs').value.trim();
+                <input type="text" id="obsExp" placeholder="Observaciones adicionales (Opcional)" style="width:100%; margin-bottom:15px;">
+                
+                <div style="text-align: right;">
+                    <button onclick="agregarExpediente()" style="background-color:var(--success);">+ Añadir a Lista de Reporte</button>
+                </div>
+            </div>
+        `;
+    }
 
-            if(!caja) return alert("Debe especificar la caja.");
-            
-            const sumaDocs = ine + acta + curpDoc + comp + acuse;
-            if(sumaDocs !== fojas) {
-                if(!confirm(`Atención: La suma de documentos (${sumaDocs}) no coincide exactamente con las fojas (${fojas}). ¿Deseas agregarlo de todos modos?`)) {
-                    return;
-                }
-            }
+    function agregarExpediente() {
+        if(!registroActualExp) return alert("Debe buscar y seleccionar un registro primero.");
 
-            if(loteExpedientes.some(item => item.folio === reg.FOLIO)) return alert("Este registro ya se encuentra en la lista de expedientes.");
+        const caja = document.getElementById('cajaExp').value.trim().toUpperCase();
+        const fojas = parseInt(document.getElementById('fojasExp').value) || 0;
+        const ine = parseInt(document.getElementById('ineExp').value) || 0;
+        const acta = parseInt(document.getElementById('actaExp').value) || 0;
+        const curpDoc = parseInt(document.getElementById('curpDocExp').value) || 0;
+        const comp = parseInt(document.getElementById('compExp').value) || 0;
+        const acuse = parseInt(document.getElementById('acuseExp').value) || 0;
+        const obs = document.getElementById('obsExp').value.trim();
 
-            loteExpedientes.push({
-                rowBase: reg.rowNumber,
-                folio: reg.FOLIO,
-                nombre: reg.NOMBRE,
-                caja: caja,
-                fojas: fojas,
-                ine: ine,
-                acta: acta,
-                curpDoc: curpDoc,
-                comprobante: comp,
-                acuse: acuse,
-                sumaDocs: sumaDocs,
-                observaciones: obs
-            });
+        if(!caja) return alert("Debe especificar la caja.");
+        
+        const sumaDocs = ine + acta + curpDoc + comp + acuse;
+        let coincide = true;
 
-            document.getElementById('valorBusquedaExp').value = "";
-            document.getElementById('contenedor-resultado-exp').innerHTML = "";
-            actualizarTablaInterfazExp();
-        }
-
-        function eliminarExpedienteLocal(index) {
-            loteExpedientes.splice(index, 1);
-            actualizarTablaInterfazExp();
-        }
-
-        function actualizarTablaInterfazExp() {
-            const area = document.getElementById('area-lote-exp');
-            const tbody = document.getElementById('lote-exp-body');
-            document.getElementById('contador-lote-exp').innerText = loteExpedientes.length;
-            if(loteExpedientes.length === 0) { area.style.display = 'none'; tbody.innerHTML = ''; return; }
-            area.style.display = 'block'; tbody.innerHTML = '';
-            loteExpedientes.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                const coincide = item.sumaDocs === item.fojas;
-                const estiloSuma = coincide ? 'color: #2e7d32; font-weight: bold;' : 'color: #c62828; font-weight: bold;';
-                tr.innerHTML = `
-                    <td><b>${escaparHTML(item.folio)}</b></td>
-                    <td>${escaparHTML(item.nombre)}</td>
-                    <td><span class="status-badge status-badge-envio">${escaparHTML(item.caja)}</span></td>
-                    <td>${item.fojas}</td>
-                    <td><span style="${estiloSuma}">${item.sumaDocs}</span></td>
-                    <td>${item.ine}</td>
-                    <td>${item.acta}</td>
-                    <td>${item.curpDoc}</td>
-                    <td>${item.comprobante}</td>
-                    <td>${item.acuse}</td>
-                    <td><small>${escaparHTML(item.observaciones) || 'S/O'}</small></td>
-                    <td><button class="btn-del" onclick="eliminarExpedienteLocal(${index})">Quitar</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function enviarExpedientesAlServidor() {
-            if(loteExpedientes.length === 0) return;
-            const btn = document.getElementById('btnEnviarBloqueExp');
-            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes en la Columna V como cadena de texto separada por comas y generar el reporte en Excel?`)) return;
-            btn.innerText = "Procesando y generando reporte..."; btn.disabled = true;
-
-            try {
-                const res = await enviarPeticion({ action: "guardar_expedientes_y_reporte", lote: loteExpedientes });
-                if(res.exito) {
-                    let mensajeFinal = `¡Éxito total!\n- Se guardaron los datos en formato de texto con comas en la Columna V.\n- Se generó el reporte en Google Drive separando los datos por columna.`;
-                    if(res.fileUrl) {
-                        mensajeFinal += `\n\n¿Deseas abrir el archivo Excel generado?`;
-                        if(confirm(mensajeFinal)) {
-                            window.open(res.fileUrl, '_blank');
-                        }
-                    } else {
-                        alert(mensajeFinal);
-                    }
-                    loteExpedientes = [];
-                    actualizarTablaInterfazExp();
-                } else {
-                    alert("Error: " + res.error);
-                }
-            } catch(e) {
-                alert("Error de comunicación con el servidor.");
-            } finally {
-                btn.innerText = "📊 Actualizar Base (Columna V) y Generar Reporte Excel";
-                btn.disabled = false;
-            }
-        }
-
-        async function cargarUsuariosParaAdmin() {
-            const select = document.getElementById('listaUsuariosAdmin');
-            try {
-                const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
-                if(usuarios.error) return select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
-                select.innerHTML = '';
-                usuarios.forEach(u => {
-                    if(u.usuario !== usuarioActual) {
-                        let opt = document.createElement('option'); opt.value = u.usuario;
-                        opt.innerText = `${u.usuario} [${u.estado}]`; select.appendChild(opt);
-                    }
-                });
-            } catch(e) { select.innerHTML = '<option>Error al cargar usuarios</option>'; }
-        }
-
-        async function ejecutarBloqueo() {
-            const userParaBloquear = document.getElementById('listaUsuariosAdmin').value;
-            if(!userParaBloquear || userParaBloquear.includes("Cargando")) return alert("Selecciona un usuario válido.");
-            if(!confirm(`¿Revocar acceso permanentemente a ${userParaBloquear}?`)) return;
-            try {
-                const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: userParaBloquear });
-                if(res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); }
-            } catch(e) { alert("Error."); }
-        }
-
-        function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
-
-        function obtenerBadgeEstatus(estatus) {
-            if (!estatus) return `<span class="status-badge status-badge-default">S/E</span>`;
-            const estatusMayus = estatus.toUpperCase().trim();
-            let claseEstatus = 'status-badge-default';
-            if (estatusMayus.includes('ENTREGADA')) claseEstatus = 'status-badge-entregada';
-            else if (estatusMayus.includes('SOBRANTE')) claseEstatus = 'status-badge-sobrante';
-            else if (estatusMayus.includes('ENVIADA') || estatusMayus.includes('OTRO') || estatusMayus.includes('SARE')) claseEstatus = 'status-badge-envio';
-            return `<span class="status-badge ${claseEstatus}">${escaparHTML(estatus)}</span>`;
-        }
-
-        async function ejecutarBusqueda() {
-            const valor = document.getElementById('valorBusqueda').value.trim();
-            const columna = document.getElementById('columnaBusqueda').value;
-            const contenedor = document.getElementById('contenedor-resultados');
-            if (!valor) return alert("Por favor ingresa un valor.");
-            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
-
-            try {
-                const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
-                if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
-                if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
-
-                let html = `<div class="contenedor-tabla"><table><thead><tr>
-                            <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th>
-                            </tr></thead><tbody>`;
-                resultados.forEach(f => {
-                    const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
-                    html += `<tr>
-                                <td><b>${escaparHTML(f.FOLIO)}</b></td>
-                                <td>${escaparHTML(f.NOMBRE)}</td>
-                                <td>${estatusHTML}</td>
-                                <td>${escaparHTML(f.SARE)}</td>
-                                <td>${escaparHTML(f.MUNICIPIO)}</td>
-                                <td>${escaparHTML(f.CCT)}</td>
-                                <td>${escaparHTML(f.ESCUELA)}</td>
-                                <td>${escaparHTML(f.NIVEL)}</td>
-                                <td>${escaparHTML(f.CURP)}</td>
-                                <td>${escaparHTML(f.MES_REMESA)}</td>
-                                <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
-                             </tr>`;
-                });
-                html += '</tbody></table></div>'; contenedor.innerHTML = html;
-            } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
-        }
-
-        async function ejecutarBusquedaSecundaria() {
-            const valor = document.getElementById('valorBusqueda2').value.trim();
-            const columna = document.getElementById('columnaBusqueda2').value;
-            const contenedor = document.getElementById('contenedor-resultados2');
-            if (!valor) return alert("Por favor ingresa un valor.");
-            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
-
-            try {
-                const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
-                if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
-                if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
-
-                let html = `<div class="contenedor-tabla"><table><thead><tr>
-                            <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th>
-                            </tr></thead><tbody>`;
-                resultados.forEach(f => {
-                    const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
-                    html += `<tr>
-                                <td><b>${escaparHTML(f.FOLIO)}</b></td>
-                                <td>${escaparHTML(f.NOMBRE)}</td>
-                                <td>${estatusHTML}</td>
-                                <td>${escaparHTML(f.SARE)}</td>
-                                <td>${escaparHTML(f.MUNICIPIO)}</td>
-                                <td>${escaparHTML(f.CCT)}</td>
-                                <td>${escaparHTML(f.ESCUELA)}</td>
-                                <td>${escaparHTML(f.NIVEL)}</td>
-                                <td>${escaparHTML(f.CURP)}</td>
-                                <td>${escaparHTML(f.MES_REMESA)}</td>
-                                <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
-                             </tr>`;
-                });
-                html += '</tbody></table></div>'; contenedor.innerHTML = html;
-            } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
-        }
-
-        async function cerrarSesion() {
-            detenerTemporizadorInactividad();
-            if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) {
-                iniciarTemporizadorInactividad();
+        // Validación de suma vs fojas
+        if(sumaDocs !== fojas) {
+            coincide = false;
+            if(!confirm(`Atención: La suma de documentos (${sumaDocs}) no coincide exactamente con las fojas (${fojas}). ¿Deseas agregarlo de todos modos?`)) {
                 return;
             }
-            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = []; loteExpedientes = [];
-            document.getElementById('user').value = '';
-            document.getElementById('pass').value = '';
-            document.getElementById('contenedor-resultados').innerHTML = '';
-            document.getElementById('contenedor-resultados2').innerHTML = '';
-            document.getElementById('contenedor-bitacora').innerHTML = '';
-            document.getElementById('valorBusqueda').value = '';
-            document.getElementById('valorBusqueda2').value = '';
-            document.getElementById('area-lote-temporal').style.display = 'none';
-            document.getElementById('area-lote-exp').style.display = 'none';
-            document.getElementById('app-section').style.display = 'none';
-            document.getElementById('login-section').style.display = 'block';
         }
-    </script>
+
+        if(loteExpedientes.some(item => item.FOLIO === registroActualExp.FOLIO)) {
+            return alert("Este registro ya se encuentra en la lista de expedientes.");
+        }
+
+        // GUARDAMOS TODA LA INFORMACIÓN DE LA FILA (registroActualExp) + LOS DATOS NUEVOS
+        loteExpedientes.push({
+            ...registroActualExp,  // Desempaqueta todos los datos de la fila original
+            rowBase: registroActualExp.rowNumber,
+            caja: caja,
+            fojas: fojas,
+            ine: ine,
+            acta: acta,
+            curpDoc: curpDoc,
+            comprobante: comp,
+            acuse: acuse,
+            observacionesExp: obs,
+            coincide: coincide
+        });
+
+        document.getElementById('valorBusquedaExp').value = "";
+        document.getElementById('contenedor-resultado-exp').innerHTML = "";
+        registroActualExp = null;
+        actualizarTablaInterfazExp();
+    }
+
+    function eliminarExpedienteLocal(index) {
+        loteExpedientes.splice(index, 1);
+        actualizarTablaInterfazExp();
+    }
+
+    function actualizarTablaInterfazExp() {
+        const area = document.getElementById('area-lote-exp');
+        const tbody = document.getElementById('lote-exp-body');
+        document.getElementById('contador-lote-exp').innerText = loteExpedientes.length;
+        
+        if(loteExpedientes.length === 0) { 
+            area.style.display = 'none'; 
+            tbody.innerHTML = ''; 
+            return; 
+        }
+        
+        area.style.display = 'block'; 
+        tbody.innerHTML = '';
+        
+        loteExpedientes.forEach((item, index) => {
+            // El color aplica a las FOJAS para la alerta visual, sin mostrar la suma
+            const estiloFojas = item.coincide ? 'color: #2e7d32; font-weight: bold; background: #e8f5e9; padding: 3px 8px; border-radius: 4px;' : 'color: #c62828; font-weight: bold; background: #ffebee; padding: 3px 8px; border-radius: 4px;';
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${escaparHTML(item.FOLIO)}</b></td>
+                <td>${escaparHTML(item.NOMBRE)}</td>
+                <td><span class="status-badge status-badge-envio">${escaparHTML(item.caja)}</span></td>
+                <td><span style="${estiloFojas}">${item.fojas}</span></td>
+                <td>${item.ine}</td>
+                <td>${item.acta}</td>
+                <td>${item.curpDoc}</td>
+                <td>${item.comprobante}</td>
+                <td>${item.acuse}</td>
+                <td><small>${escaparHTML(item.observacionesExp) || 'S/O'}</small></td>
+                <td><button class="btn-del" onclick="eliminarExpedienteLocal(${index})">Quitar</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function enviarExpedientesAlServidor() {
+        if(loteExpedientes.length === 0) return;
+        const btn = document.getElementById('btnEnviarBloqueExp');
+        if(!confirm(`¿Deseas enviar estos ${loteExpedientes.length} expedientes, sincronizar la Columna V y generar el reporte en Excel?`)) return;
+        
+        btn.innerText = "Procesando y generando reporte..."; 
+        btn.disabled = true;
+
+        try {
+            // Mandamos loteExpedientes (el cual ya contiene la info de fila COMPLETA de cada registro)
+            const res = await enviarPeticion({ action: "guardar_expedientes_y_reporte", lote: loteExpedientes });
+            
+            if(res.exito) {
+                let mensajeFinal = `¡Éxito total!\n- Se guardaron los datos en formato de texto con comas en la Columna V.\n- Se generó el reporte en Google Drive con TODOS los datos de las filas.`;
+                if(res.fileUrl) {
+                    mensajeFinal += `\n\n¿Deseas abrir el archivo Excel generado?`;
+                    if(confirm(mensajeFinal)) {
+                        window.open(res.fileUrl, '_blank');
+                    }
+                } else {
+                    alert(mensajeFinal);
+                }
+                loteExpedientes = [];
+                actualizarTablaInterfazExp();
+            } else {
+                alert("Error al procesar: " + (res.error || "Desconocido"));
+            }
+        } catch(e) {
+            alert("Error de comunicación con el servidor.");
+        } finally {
+            btn.innerText = "📊 Actualizar Columna V y Generar Reporte Excel";
+            btn.disabled = false;
+        }
+    }
+
+    /* =====================================================================
+       MÓDULO 3: ADMINISTRACIÓN
+       ===================================================================== */
+    async function cargarUsuariosParaAdmin() {
+        const select = document.getElementById('listaUsuariosAdmin');
+        try {
+            const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
+            if(usuarios.error) return select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
+            select.innerHTML = '';
+            usuarios.forEach(u => {
+                if(u.usuario !== usuarioActual) {
+                    let opt = document.createElement('option'); opt.value = u.usuario;
+                    opt.innerText = `${u.usuario} [${u.estado}]`; select.appendChild(opt);
+                }
+            });
+        } catch(e) { select.innerHTML = '<option>Error al cargar usuarios</option>'; }
+    }
+
+    async function ejecutarBloqueo() {
+        const userParaBloquear = document.getElementById('listaUsuariosAdmin').value;
+        if(!userParaBloquear || userParaBloquear.includes("Cargando")) return alert("Selecciona un usuario válido.");
+        if(!confirm(`¿Revocar acceso permanentemente a ${userParaBloquear}?`)) return;
+        try {
+            const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: userParaBloquear });
+            if(res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); }
+        } catch(e) { alert("Error."); }
+    }
+
+</script>
 </body>
 </html>
