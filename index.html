@@ -148,7 +148,7 @@
 
     <div id="app-section" class="tarjeta">
         <img src="Imagen11.png" alt="Logo" class="logo-app">
-      <img src="user___Imagen4t (5).gif" alt="saludo"> 
+        <img src="user___Imagen4t (5).gif" alt="saludo"> 
         <h2 id="saludo-usuario">Buscador de Registros</h2>
         
         <div id="panel-busqueda">
@@ -229,7 +229,7 @@
                         <tbody id="lote-exp-body"></tbody>
                     </table>
                 </div>
-                <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base y Generar Reporte Excel</button>
+                <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base (Columna V) y Generar Reporte Excel</button>
             </div>
 
             <div id="panel-busqueda-secundario" style="margin-top: 35px; border-top: 1px dashed #b2dfdb; padding-top: 20px;">
@@ -287,7 +287,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbziP8lF5BlHwRMSOXV-1v5Z0Gw7Tx3hQhyen1PDWBJnSVxHwg4N9PWEPlxLfaStymnCSw/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzYMKBNPqwsokpWBPfmkTNpgJdnFzVKIv3eeXuZyGyiPEE1KrCJLIf8q1flppuypwZCcg/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -656,13 +656,13 @@
         async function enviarExpedientesAlServidor() {
             if(loteExpedientes.length === 0) return;
             const btn = document.getElementById('btnEnviarBloqueExp');
-            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes en la Columna W como cadena de texto separada por comas y generar el reporte en Excel?`)) return;
+            if(!confirm(`¿Deseas guardar estos ${loteExpedientes.length} expedientes en la Columna V como cadena de texto separada por comas y generar el reporte en Excel?`)) return;
             btn.innerText = "Procesando y generando reporte..."; btn.disabled = true;
 
             try {
                 const res = await enviarPeticion({ action: "guardar_expedientes_y_reporte", lote: loteExpedientes });
                 if(res.exito) {
-                    let mensajeFinal = `¡Éxito total!\n- Se guardaron los datos en formato de texto con comas en la Columna W.\n- Se generó el reporte en Google Drive separando los datos por columna.`;
+                    let mensajeFinal = `¡Éxito total!\n- Se guardaron los datos en formato de texto con comas en la Columna V.\n- Se generó el reporte en Google Drive separando los datos por columna.`;
                     if(res.fileUrl) {
                         mensajeFinal += `\n\n¿Deseas abrir el archivo Excel generado?`;
                         if(confirm(mensajeFinal)) {
@@ -679,7 +679,7 @@
             } catch(e) {
                 alert("Error de comunicación con el servidor.");
             } finally {
-                btn.innerText = "📊 Actualizar Base y Generar Reporte Excel";
+                btn.innerText = "📊 Actualizar Base (Columna V) y Generar Reporte Excel";
                 btn.disabled = false;
             }
         }
