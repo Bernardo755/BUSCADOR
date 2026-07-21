@@ -154,33 +154,6 @@
             <div id="contenedor-resultados"></div>
         </div>
 
-        <div id="panel-expedientes" class="sub-panel" style="display: block;">
-            <h3>Módulo de Expedientes y Reportes Excel</h3>
-            <div class="card-busqueda-exp">
-                <h4 style="margin:0 0 10px 0; color:#18493f;">Buscar registro para agregar al lote de expedientes:</h4>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="valorBusquedaExp" placeholder="Folio, Nombre o CURP..." style="flex: 1; min-width: 200px;">
-                    <button onclick="buscarParaExpediente()" class="btn-add">🔍 Buscar en Base</button>
-                </div>
-                <div id="contenedor-resultado-exp" style="margin-top: 15px;"></div>
-            </div>
-
-            <div id="area-lote-exp" style="display:none; margin-top:25px;">
-                <h4 style="margin:0; color: #37474f;">Registros de Expedientes Acumulados (<span id="contador-lote-exp">0</span>):</h4>
-                <div class="contenedor-tabla">
-                    <table class="tabla-lote">
-                        <thead>
-                            <tr>
-                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>INE</th><th>Acta</th><th>CURP</th><th>Comp.</th><th>Acuse</th><th>Obs.</th><th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lote-exp-body"></tbody>
-                    </table>
-                </div>
-                <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base y Generar Reporte Excel</button>
-            </div>
-        </div>
-
         <div id="panel-edicion" class="sub-panel">
             <h3>Módulo de Edición (Captura por Bloques)</h3>
             <div class="form-edicion">
@@ -213,6 +186,38 @@
                     </div>
                     <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="panel-expedientes" class="sub-panel" style="display: block;">
+            <h3>Módulo de Expedientes y Reportes Excel</h3>
+            <div class="card-busqueda-exp">
+                <h4 style="margin:0 0 10px 0; color:#18493f;">Buscar registro para agregar al lote de expedientes:</h4>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="valorBusquedaExp" placeholder="Valor a buscar..." style="flex: 1; min-width: 200px;">
+                    <select id="columnaBusquedaExp">
+                        <option value="Nombre">Nombre</option>
+                        <option value="CURP">CURP</option>
+                        <option value="Folio">Folio</option>
+                    </select>
+                    <button onclick="buscarParaExpediente()" class="btn-add">🔍 Buscar en Base</button>
+                </div>
+                <div id="contenedor-resultado-exp" style="margin-top: 15px;"></div>
+            </div>
+
+            <div id="area-lote-exp" style="display:none; margin-top:25px;">
+                <h4 style="margin:0; color: #37474f;">Registros de Expedientes Acumulados (<span id="contador-lote-exp">0</span>):</h4>
+                <div class="contenedor-tabla">
+                    <table class="tabla-lote">
+                        <thead>
+                            <tr>
+                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>INE</th><th>Acta</th><th>CURP</th><th>Comp.</th><th>Acuse</th><th>Obs.</th><th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lote-exp-body"></tbody>
+                    </table>
+                </div>
+                <button class="btn-send-block" id="btnEnviarBloqueExp" onclick="enviarExpedientesAlServidor()" style="background-color: #1e5b4f;">📊 Actualizar Base y Generar Reporte Excel</button>
             </div>
         </div>
 
@@ -256,7 +261,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxzz0Bv2ICtTjU5NvuuiPd8yQnfvyGlOUSqoJNinFICtOQVTEB27nW_7wX5aTXNjOGmZQ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzYlN2AYh4NJCqRv8P5m61EeMydMTc7nVHGBZrHYVtydOQo4ZDgXzU3bMCLd72gTgcfFQ/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -477,12 +482,13 @@
 
         async function buscarParaExpediente() {
             const val = document.getElementById('valorBusquedaExp').value.trim();
+            const col = document.getElementById('columnaBusquedaExp').value;
             const contenedor = document.getElementById('contenedor-resultado-exp');
-            if(!val) return alert("Ingresa un folio, nombre o CURP para buscar.");
+            if(!val) return alert("Ingresa un valor para buscar.");
             contenedor.innerHTML = "<p>Buscando registro...</p>";
 
             try {
-                let res = await enviarPeticion({ action: "buscar_expediente_unico", valor: val });
+                let res = await enviarPeticion({ action: "buscar_expediente_unico", valor: val, columna: col });
                 if(res.error || !res.registro) {
                     contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${res.error || "No se encontró ningún registro con ese valor."}</p>`;
                     return;
