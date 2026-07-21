@@ -972,7 +972,7 @@
                 if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
 
                 let html = `<div class="contenedor-tabla"><table><thead><tr>
-                            <th>FOLIO</th><th>NOMBRE</th><th>SARE</th><th>CURP</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>ESTATUS</th>
+                            <th>FOLIO</th><th>NOMBRE</th><th>CURP</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>ESTATUS</th>
                             </tr></thead><tbody>`;
                 resultados.forEach(f => {
                     const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
