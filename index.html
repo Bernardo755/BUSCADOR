@@ -429,12 +429,12 @@
             document.getElementById('saludo-usuario').innerText = `Panel del Sistema`;
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
-            document.getElementById('panel-documental').style.display = 'none'
+            
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
                 document.getElementById('panel-edicion').style.display = 'block';
-                document.getElementById('panel-documental').style.display = 'none';
+              document.getElementById('panel-documental').style.display = 'none';
             }
 
             if (rol === "ADMIN") {
