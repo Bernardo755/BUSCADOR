@@ -252,7 +252,7 @@
                     </div>
                     <div>
                         <label style="font-size:12px; font-weight:bold;">Cantidad de Acuses:</label>
-                        <input type="number" id="docAcuses" placeholder="0" style="width:100%;">
+                        <input type="number" id="docAcuses" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
                     </div>
                 </div>
 
@@ -336,7 +336,7 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxjBKbwlgjNWdQpG_kEqWbm3bAr6dlwlDKzy78Eam3IRZx7HnA08D0FZkdg1zkFNjXY/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyH5qBxjEq_atMLNOze8dpIRsThTb3HRMmnkkhSthLKpyCc161qP5Rric-AeNYKk-z9XQ/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -680,8 +680,9 @@
             const acta = parseInt(document.getElementById('docActa').value) || 0;
             const curpDoc = parseInt(document.getElementById('docCurpDoc').value) || 0;
             const comprobante = parseInt(document.getElementById('docComprobante').value) || 0;
+            const acuse = parseInt(document.getElementById('docAcuses').value) || 0;
 
-            const sumaDocs = ine + acta + curpDoc + comprobante;
+            const sumaDocs = ine + acta + curpDoc + comprobante + acuse;
             const indicador = document.getElementById('indicador-coincidencia');
 
             if (document.getElementById('docFojas').value === "") {
