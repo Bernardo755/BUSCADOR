@@ -250,6 +250,10 @@
                         <label style="font-size:12px; font-weight:bold;">Comprobante:</label>
                         <input type="number" id="docComprobante" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
                     </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Cantidad de Acuses:</label>
+                        <input type="number" id="docAcuses" placeholder="0" style="width:100%;">
+                    </div>
                 </div>
 
                 <div style="margin-top: 15px;">
@@ -275,13 +279,17 @@
                     <table style="background: white;">
                         <thead>
                             <tr style="background: #004d40; color:white;">
-                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>Docs. Sumados</th><th>Estatus Coincidencia</th><th>Acción</th>
+                                <th>Folio</th><th>Nombre</th><th>Caja</th><th>Fojas</th><th>Estatus Coincidencia</th><th>Acción</th>
                             </tr>
                         </thead>
                         <tbody id="documental-body"></tbody>
                     </table>
                 </div>
-                <button class="btn-send-block" onclick="preguntarYGenerarExcel()" style="background-color: #2e7d32; margin-top: 15px;">📊 Generar y Descargar Reporte Excel</button>
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-send-block" onclick="preguntarYGenerarExcel()" style="background-color: #2e7d32; margin: 0; flex: 1;">📊 Generar y Descargar Reporte Excel</button>
+                    <button class="btn-send-block" onclick="sincronizarListaDocumentalServidor()" style="background-color: #0288d1; margin: 0; flex: 1;">🚀 Sincronizar Datos al Servidor</button>
+                    <button class="btn-send-block" onclick="limpiarRegistrosDocumentalesAgregados()" style="background-color: #d32f2f; margin: 0; flex: 1;">🧹 Limpiar Registros Agregados</button>
+                </div>
             </div>
         </div>
 
@@ -328,7 +336,7 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxy4TV9trHbI3h_MAsDpO-oVuezPyRBtV83IdCXurx4--NTCb8n0GGBnZE3iymqna5PDw/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxjBKbwlgjNWdQpG_kEqWbm3bAr6dlwlDKzy78Eam3IRZx7HnA08D0FZkdg1zkFNjXY/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -658,6 +666,7 @@
             document.getElementById('docActa').value = '';
             document.getElementById('docCurpDoc').value = '';
             document.getElementById('docComprobante').value = '';
+            document.getElementById('docAcuses').value = '';
             document.getElementById('docObservaciones').value = '';
             document.getElementById('indicador-coincidencia').innerHTML = "Ingrese las fojas y los documentos para verificar la coincidencia.";
             document.getElementById('indicador-coincidencia').style.background = "#eee";
@@ -711,9 +720,9 @@
                 acta: document.getElementById('docActa').value.trim() || "0",
                 curpDoc: document.getElementById('docCurpDoc').value.trim() || "0",
                 comprobante: document.getElementById('docComprobante').value.trim() || "0",
+                acuses: document.getElementById('docAcuses').value.trim() || "0",
                 observacionesDoc: document.getElementById('docObservaciones').value.trim() || "",
-                coincide: validacion.coincide,
-                sumaDocs: validacion.suma
+                coincide: validacion.coincide
             };
 
             listaDocumentalAcumulada.push(itemCompleto);
@@ -728,6 +737,13 @@
 
         function eliminarItemDocumental(index) {
             listaDocumentalAcumulada.splice(index, 1);
+            actualizarTablaListaDocumental();
+        }
+
+        function limpiarRegistrosDocumentalesAgregados() {
+            if (listaDocumentalAcumulada.length === 0) return alert("La lista ya se encuentra vacía.");
+            if (!confirm("¿Deseas limpiar todos los registros agregados en la lista documental?")) return;
+            listaDocumentalAcumulada = [];
             actualizarTablaListaDocumental();
         }
 
@@ -755,7 +771,6 @@
                     <td>${escaparHTML(item.NOMBRE)}</td>
                     <td>${escaparHTML(item.caja)}</td>
                     <td>${escaparHTML(item.fojas)}</td>
-                    <td>${escaparHTML(item.sumaDocs)}</td>
                     <td>${badgeEstatus}</td>
                     <td><button class="btn-del" onclick="eliminarItemDocumental(${index})">Quitar</button></td>
                 `;
@@ -785,6 +800,7 @@
                 Acta: item.acta,
                 CURP_Doc: item.curpDoc,
                 Comprobante: item.comprobante,
+                Cantidad_Acuses: item.acuses,
                 Observaciones_Doc: item.observacionesDoc,
                 Coincide_Fojas: item.coincide ? "SI" : "NO"
             }));
@@ -810,6 +826,34 @@
             XLSX.writeFile(wb, "Reporte_Documental_Sistema.xlsx");
         }
 
+        async function sincronizarListaDocumentalServidor() {
+            if (listaDocumentalAcumulada.length === 0) return alert("La lista está vacía.");
+            if (!confirm(`¿Deseas sincronizar y actualizar la columna V para los ${listaDocumentalAcumulada.length} registros acumulados en el servidor?`)) return;
+
+            let loteActualizacion = listaDocumentalAcumulada.map(item => {
+                let folioBusq = item.FOLIO || item.Folio || '';
+                let cadenaValores = `${item.caja}, ${item.fojas}, ${item.ine}, ${item.tipoIdentificacion}, ${item.acta}, ${item.curpDoc}, ${item.comprobante}, ${item.acuses}, ${item.observacionesDoc || "Sin observaciones"}`;
+                return { folio: folioBusq, valoresCeldaV: cadenaValores };
+            });
+
+            try {
+                const res = await enviarPeticion({
+                    action: "actualizar_lote_columna_v",
+                    lote: loteActualizacion
+                });
+
+                if (res.exito) {
+                    let msg = `¡Sincronización documental exitosa! Se actualizaron ${res.exitosos} registros.`;
+                    if (res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
+                    alert(msg);
+                } else {
+                    alert("Error en la sincronización: " + (res.error || "Desconocido"));
+                }
+            } catch (error) {
+                alert("Error de red al intentar sincronizar los datos documentales.");
+            }
+        }
+
         async function registrarValoresFojasCeldaV() {
             if (!registroSeleccionadoDoc) return alert("Selecciona un registro primero.");
             const fojasVal = document.getElementById('docFojas').value;
@@ -822,9 +866,10 @@
             const acta = document.getElementById('docActa').value.trim() || "0";
             const curpDoc = document.getElementById('docCurpDoc').value.trim() || "0";
             const comp = document.getElementById('docComprobante').value.trim() || "0";
+            const acuses = document.getElementById('docAcuses').value.trim() || "0";
             const obs = document.getElementById('docObservaciones').value.trim() || "Sin observaciones";
 
-            const cadenaValores = `${caja}, ${fojas}, ${ine}, ${tipoId}, ${acta}, ${curpDoc}, ${comp}, ${obs}`;
+            const cadenaValores = `${caja}, ${fojas}, ${ine}, ${tipoId}, ${acta}, ${curpDoc}, ${comp}, ${acuses}, ${obs}`;
 
             const folioBusqueda = registroSeleccionadoDoc.FOLIO || registroSeleccionadoDoc.Folio;
             if(!folioBusqueda) return alert("El registro seleccionado no cuenta con un Folio válido para actualizar.");
