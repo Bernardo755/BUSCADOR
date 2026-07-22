@@ -974,15 +974,26 @@ function iniciarEscanerDoc() {
 
 function detenerEscanerDoc() {
     if (html5QrCodeDoc) {
-        html5QrCodeDoc.stop().then(() => {
-            document.getElementById('contenedor-escaner-doc').style.display = 'none';
-        }).catch((err) => {
-            console.error("Error al detener la cámara", err);
-        });
-    } else {
-        document.getElementById('contenedor-escaner-doc').style.display = 'none';
-    }
-}
+        html5QrCodeDoc.start({ facingMode: "environment" }, config, 
+        (decodedText, decodedResult) => {
+            // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
+            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
+            
+            // 2. Extraer ÚNICAMENTE los primeros 18 caracteres
+            let textoLimitado = textoLimpio.substring(0, 18);
+            
+            // 3. Pegar el valor limpio y limitado en el textbox de búsqueda
+            document.getElementById('docValorBusqueda').value = textoLimitado;
+            
+            // 4. Detener la cámara y ocultar el contenedor automáticamente
+            detenerEscanerDoc();
+
+            // Opcional: ejecutarBusquedaDocumental();
+        }, 
+        (errorMessage) => {
+            // Ignoramos los errores continuos
+        }
+    )
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
             try {
