@@ -6,6 +6,7 @@
     <title>SISTEMA DE BUSQUEDA</title>
     <!-- Librería SheetJS (xlsx) para generar archivos Excel descargables -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -215,6 +216,18 @@
             
             <div class="controles-busqueda">
                 <input type="text" id="docValorBusqueda" placeholder="Valor a buscar...">
+                <!-- Botón para abrir el escáner -->
+<button type="button" id="btnEscanearDoc" onclick="iniciarEscanerDoc()" style="margin-top: 10px; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+    📷 Escanear Código
+</button>
+
+<!-- Contenedor de la cámara (oculto por defecto) -->
+<div id="contenedor-escaner-doc" style="display: none; margin-top: 15px; max-width: 400px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+    <div id="reader-doc" style="width: 100%;"></div>
+    <button type="button" onclick="detenerEscanerDoc()" style="margin-top: 10px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+        Cancelar / Detener Cámara
+    </button>
+</div>
                 <select id="docColumnaBusqueda">
                     <option value="Nombre">Nombre</option>
                     <option value="CURP">CURP</option>
@@ -924,7 +937,52 @@
                 alert("Error de red al intentar actualizar la columna V.");
             }
         }
+// --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
+let html5QrCodeDoc = null;
 
+function iniciarEscanerDoc() {
+    const contenedorEscaner = document.getElementById('contenedor-escaner-doc');
+    contenedorEscaner.style.display = 'block'; // Mostramos el área de la cámara
+
+    html5QrCodeDoc = new Html5Qrcode("reader-doc");
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+    html5QrCodeDoc.start({ facingMode: "environment" }, config, 
+        (decodedText, decodedResult) => {
+            // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
+            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
+            
+            // 2. Pegar el valor limpio en el textbox de búsqueda documental
+            document.getElementById('docValorBusqueda').value = textoLimpio;
+            
+            // 3. Detener la cámara y ocultar el contenedor automáticamente
+            detenerEscanerDoc();
+
+            // Opcional: Si quieres que además busque en automático sin tener 
+            // que darle clic al botón "Buscar", descomenta la siguiente línea:
+            // ejecutarBusquedaDocumental();
+        }, 
+        (errorMessage) => {
+            // Ignoramos los errores continuos de búsqueda de la cámara
+        }
+    ).catch((err) => {
+        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
+        console.error(err);
+        contenedorEscaner.style.display = 'none';
+    });
+}
+
+function detenerEscanerDoc() {
+    if (html5QrCodeDoc) {
+        html5QrCodeDoc.stop().then(() => {
+            document.getElementById('contenedor-escaner-doc').style.display = 'none';
+        }).catch((err) => {
+            console.error("Error al detener la cámara", err);
+        });
+    } else {
+        document.getElementById('contenedor-escaner-doc').style.display = 'none';
+    }
+}
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
             try {
