@@ -597,33 +597,35 @@
         }
 
         function agregarAlBloqueLocal() {
-            const folioInput = document.getElementById('editFolio');
-            const estatusInput = document.getElementById('editEstatus');
-            const obsInput = document.getElementById('editObservaciones');
-            const folio = folioInput.value.trim();
-            if(!folio) return alert("Por favor ingresa o escanea un folio.");
-            if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
-            // 2. Crear la fecha actual
-            const fechaActual = new Date().toLocaleDateString('es-MX'); 
-    // 3. Agregar un espacio y la fecha al texto (solo si hay texto)
-    let observacionesConFecha = "";
-    if (textoObservaciones !== "") {
-        observacionesConFecha = `${textoObservaciones} ${fechaActual}`;
-    }
-
-    // ------------------------------------------------------------------
-    // AQUÍ VA TU LÓGICA PARA AGREGAR EL REGISTRO AL LISTADO (TABLA/ARRAY)
-    // Utiliza la variable "observacionesConFecha" en lugar del valor directo
-    // ------------------------------------------------------------------
+    const folioInput = document.getElementById('editFolio');
+    const estatusInput = document.getElementById('editEstatus');
+    const obsInput = document.getElementById('editObservaciones');
+    const folio = folioInput.value.trim();
     
-    // Ejemplo de cómo se vería el dato a guardar:
-    console.log("Se guardará la observación como:", observacionesConFecha);
+    if(!folio) return alert("Por favor ingresa o escanea un folio.");
+    if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
+    
+    // 1. Obtener el texto base y generar la fecha
+    const textoBase = obsInput.value.trim();
+    const fechaActual = new Date().toLocaleDateString('es-MX');
+    
+    // 2. Concatenar texto + espacio + fecha (si está vacío, solo pone la fecha)
+    const observacionesConFecha = textoBase !== "" ? `${textoBase} ${fechaActual}` : fechaActual;
 
-    // 4. Limpiar los campos para el siguiente registro
-    inputFolio.value = "";
+    // 3. Guardar en el arreglo usando la nueva variable
+    loteTemporal.push({ 
+        folio: folio, 
+        estatus: estatusInput.value, 
+        observaciones: observacionesConFecha 
+    });
+    
+    // 4. Se eliminó obsInput.value = ""; para que el texto se mantenga en pantalla
+    folioInput.value = ""; 
+    folioInput.focus();
+    
+    actualizarTablaInterfazLote();
+}
 
-            actualizarTablaInterfazLote();
-        }
 
   
 
