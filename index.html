@@ -937,44 +937,24 @@
                 alert("Error de red al intentar actualizar la columna V.");
             }
         }
-// --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
+
+
+
+        // --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
 let html5QrCodeDoc = null;
 
 function iniciarEscanerDoc() {
     const contenedorEscaner = document.getElementById('contenedor-escaner-doc');
     contenedorEscaner.style.display = 'block'; // Mostramos el área de la cámara
 
-    html5QrCodeDoc = new Html5Qrcode("reader-doc");
+    // Instanciamos solo si no existe para evitar duplicidad
+    if (!html5QrCodeDoc) {
+        html5QrCodeDoc = new Html5Qrcode("reader-doc");
+    }
+    
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
     html5QrCodeDoc.start({ facingMode: "environment" }, config, 
-        (decodedText, decodedResult) => {
-            // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
-            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
-            
-            // 2. Pegar el valor limpio en el textbox de búsqueda documental
-            document.getElementById('docValorBusqueda').value = textoLimpio;
-            
-            // 3. Detener la cámara y ocultar el contenedor automáticamente
-            detenerEscanerDoc();
-
-            // Opcional: Si quieres que además busque en automático sin tener 
-            // que darle clic al botón "Buscar", descomenta la siguiente línea:
-            // ejecutarBusquedaDocumental();
-        }, 
-        (errorMessage) => {
-            // Ignoramos los errores continuos de búsqueda de la cámara
-        }
-    ).catch((err) => {
-        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
-        console.error(err);
-        contenedorEscaner.style.display = 'none';
-    });
-}
-
-function detenerEscanerDoc() {
-    if (html5QrCodeDoc) {
-        html5QrCodeDoc.start({ facingMode: "environment" }, config, 
         (decodedText, decodedResult) => {
             // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
             let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
@@ -991,8 +971,35 @@ function detenerEscanerDoc() {
             // Opcional: ejecutarBusquedaDocumental();
         }, 
         (errorMessage) => {
-            // Ignoramos los errores continuos
+            // Ignoramos los errores continuos de búsqueda de la cámara
         }
+    ).catch((err) => {
+        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
+        console.error(err);
+        contenedorEscaner.style.display = 'none';
+    });
+}
+
+function detenerEscanerDoc() {
+    if (html5QrCodeDoc) {
+        // Llamamos al método .stop() real de la librería
+        html5QrCodeDoc.stop().then(() => {
+            console.log("Cámara detenida correctamente.");
+            // Ocultamos el contenedor una vez que la cámara se apaga
+            document.getElementById('contenedor-escaner-doc').style.display = 'none';
+            // Opcional: limpiar la UI del escáner
+            // html5QrCodeDoc.clear(); 
+        }).catch((err) => {
+            console.error("Error al detener el escáner: ", err);
+        });
+    } else {
+        // Si no hay instancia, solo ocultamos el contenedor por seguridad
+        document.getElementById('contenedor-escaner-doc').style.display = 'none';
+    }
+}
+
+
+        
     
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
