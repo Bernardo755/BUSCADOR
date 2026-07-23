@@ -603,12 +603,17 @@
             const folio = folioInput.value.trim();
             if(!folio) return alert("Por favor ingresa o escanea un folio.");
             if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
+            // 2. Crear la fecha actual
+            const fechaActual = new Date().toLocaleDateString('es-MX'); 
             
             loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
-            folioInput.value = ""; obsInput.value = ""; folioInput.focus();
+            folioInput.value = ""; obsInput.value = '${textoObservaciones} ${fechaActual}'; folioInput.focus();
             actualizarTablaInterfazLote();
         }
 
+
+
+        
         function eliminarDelBloqueLocal(index) {
             loteTemporal.splice(index, 1);
             actualizarTablaInterfazLote();
