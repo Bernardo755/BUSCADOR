@@ -605,12 +605,27 @@
             if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
             // 2. Crear la fecha actual
             const fechaActual = new Date().toLocaleDateString('es-MX'); 
-            
-            loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
-            folioInput.value = ""; obsInput.value = '${textoObservaciones} ${fechaActual}'; folioInput.focus();
+    // 3. Agregar un espacio y la fecha al texto (solo si hay texto)
+    let observacionesConFecha = "";
+    if (textoObservaciones !== "") {
+        observacionesConFecha = `${textoObservaciones} ${fechaActual}`;
+    }
+
+    // ------------------------------------------------------------------
+    // AQUÍ VA TU LÓGICA PARA AGREGAR EL REGISTRO AL LISTADO (TABLA/ARRAY)
+    // Utiliza la variable "observacionesConFecha" en lugar del valor directo
+    // ------------------------------------------------------------------
+    
+    // Ejemplo de cómo se vería el dato a guardar:
+    console.log("Se guardará la observación como:", observacionesConFecha);
+
+    // 4. Limpiar los campos para el siguiente registro
+    inputFolio.value = "";
+
             actualizarTablaInterfazLote();
         }
 
+  
 
 
         
