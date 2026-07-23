@@ -168,22 +168,15 @@
                     <option value="CURP">CURP</option>
                     <option value="Folio">Folio</option>
                 </select>
-                <button onclick="ejecutarBusqueda()">Buscar</button>
-            </div>
-<!-- Botón para abrir el escáner (Llama a la función y le pasa el ID 'valorBusqueda') -->
-    <button type="button" id="btnEscanear" onclick="iniciarEscanerDoc('valorBusqueda')" style="margin-top: 10px; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        📷 Escanear Código
-    </button>
+               <button onclick="ejecutarBusqueda()">Buscar</button>
+        <!-- Nuevo botón para abrir la cámara -->
+        <button type="button" onclick="iniciarEscanerQR()">📷 Escanear QR</button>
+    </div> 
+    
+    <!-- Contenedor para la cámara (oculto por defecto) -->
+    <div id="lector-qr" style="width: 300px; display: none; margin-top: 15px;"></div>
 
-    <!-- Contenedor de la cámara (oculto por defecto) -->
-    <div id="contenedor-escaner-doc" style="display: none; margin-top: 15px; max-width: 400px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-        <div id="reader-doc" style="width: 100%;"></div>
-        <button type="button" onclick="detenerEscanerDoc()" style="margin-top: 10px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
-            Cancelar / Detener Cámara
-        </button>
-    </div>
 
-            
             <div id="contenedor-resultados"></div>
         </div>
 
@@ -956,62 +949,65 @@
 
 
 // --- LÓGICA DEL ESCÁNER QR/CÓDIGO DE BARRAS ---
-// --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
 
-let html5QrCodeDoc = null;
-function iniciarEscanerDoc() {
-    const contenedorEscaner = document.getElementById('valorBusqueda');
-    contenedorEscaner.style.display = 'block'; // Mostramos el área de la cámara
-    // Instanciamos solo si no existe para evitar duplicidad
-    if (!html5QrCodeDoc) {
-        html5QrCodeDoc = new Html5Qrcode("reader-doc");
+let html5QrCode;
+
+function iniciarEscanerQR() {
+    const contenedorLector = document.getElementById('lector-qr');
+    contenedorLector.style.display = 'block'; // Mostrar la cámara
+
+    // Inicializar el lector si no existe
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("lector-qr");
     }
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-    html5QrCodeDoc.start({ facingMode: "environment" }, config, 
-        (decodedText, decodedResult) => {
-            // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
-            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
-            // 2. Extraer ÚNICAMENTE los primeros 18 caracteres
-            let textoLimitado = textoLimpio.substring(0, 18);
-            // 3. Pegar el valor limpio y limitado en el textbox de búsqueda
-            document.getElementById('valorBusqueda').value = textoLimitado;
-            // 4. Detener la cámara y ocultar el contenedor automáticamente
-            detenerEscanerDoc();
-            // Opcional: ejecutarBusquedaDocumental();
-        }, 
-        (errorMessage) => {
-            // Ignoramos los errores continuos de búsqueda de la cámara
+
+    const configEscaner = { 
+        fps: 10, // Cuadros por segundo
+        qrbox: { width: 250, height: 250 } // Área de escaneo
+    };
+
+    // Iniciar cámara trasera ("environment")
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        configEscaner,
+        (textoDecodificado, resultadoDecodificado) => {
+            // ÉXITO: Se leyó un QR
+            
+            // 1. Extraer solo los primeros 18 caracteres
+            const primeros18 = textoDecodificado.substring(0, 18);
+            
+            // 2. Pegarlos en el textbox
+            document.getElementById('valorBusqueda').value = primeros18;
+            
+            // 3. Detener la cámara y ocultar el contenedor
+            detenerEscaner();
+        },
+        (mensajeError) => {
+            // Ignorar errores de lectura frame por frame
         }
     ).catch((err) => {
-        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
-        console.error(err);
-        contenedorEscaner.style.display = 'none';
+        console.error("Error al iniciar la cámara:", err);
+        alert("No se pudo acceder a la cámara. Verifica los permisos del navegador.");
     });
 }
-function detenerEscanerDoc() {
-    if (html5QrCodeDoc) {
-        // Llamamos al método .stop() real de la librería
-        html5QrCodeDoc.stop().then(() => {
-            console.log("Cámara detenida correctamente.");
-            // Ocultamos el contenedor una vez que la cámara se apaga
-            document.getElementById('contenedor-escaner-doc').style.display = 'none';
-            // Opcional: limpiar la UI del escáner
-            // html5QrCodeDoc.clear(); 
+
+function detenerEscaner() {
+    if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('lector-qr').style.display = 'none';
         }).catch((err) => {
-            console.error("Error al detener el escáner: ", err);
+            console.error("Error al detener el escáner", err);
         });
-    } else {
-        // Si no hay instancia, solo ocultamos el contenedor por seguridad
-        document.getElementById('contenedor-escaner-doc').style.display = 'none';
     }
 }
 
 
+
+
+
+
         
 
-
-
-        
 // --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
 
 let html5QrCodeDoc = null;
