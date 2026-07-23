@@ -956,6 +956,7 @@
 
 
 // --- LÓGICA DEL ESCÁNER QR/CÓDIGO DE BARRAS ---
+
 // --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
 let html5QrCodeDoc = null;
 let inputDestino = ''; // Nueva variable para saber a qué textbox mandar el texto
@@ -1032,6 +1033,80 @@ function detenerEscanerDoc() {
     }
 }
 
+
+        
+
+
+
+        
+// --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
+
+let html5QrCodeDoc = null;
+function iniciarEscanerDoc() {
+    const contenedorEscaner = document.getElementById('contenedor-escaner-doc');
+    contenedorEscaner.style.display = 'block'; // Mostramos el área de la cámara
+    // Instanciamos solo si no existe para evitar duplicidad
+    if (!html5QrCodeDoc) {
+        html5QrCodeDoc = new Html5Qrcode("reader-doc");
+    }
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    html5QrCodeDoc.start({ facingMode: "environment" }, config, 
+        (decodedText, decodedResult) => {
+            // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
+            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
+            // 2. Extraer ÚNICAMENTE los primeros 18 caracteres
+            let textoLimitado = textoLimpio.substring(0, 18);
+            // 3. Pegar el valor limpio y limitado en el textbox de búsqueda
+            document.getElementById('docValorBusqueda').value = textoLimitado;
+            // 4. Detener la cámara y ocultar el contenedor automáticamente
+            detenerEscanerDoc();
+            // Opcional: ejecutarBusquedaDocumental();
+        }, 
+        (errorMessage) => {
+            // Ignoramos los errores continuos de búsqueda de la cámara
+        }
+    ).catch((err) => {
+        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
+        console.error(err);
+        contenedorEscaner.style.display = 'none';
+    });
+}
+
+
+
+function detenerEscanerDoc() {
+
+    if (html5QrCodeDoc) {
+
+        // Llamamos al método .stop() real de la librería
+
+        html5QrCodeDoc.stop().then(() => {
+
+            console.log("Cámara detenida correctamente.");
+
+            // Ocultamos el contenedor una vez que la cámara se apaga
+
+            document.getElementById('contenedor-escaner-doc').style.display = 'none';
+
+            // Opcional: limpiar la UI del escáner
+
+            // html5QrCodeDoc.clear(); 
+
+        }).catch((err) => {
+
+            console.error("Error al detener el escáner: ", err);
+
+        });
+
+    } else {
+
+        // Si no hay instancia, solo ocultamos el contenedor por seguridad
+
+        document.getElementById('contenedor-escaner-doc').style.display = 'none';
+
+    }
+
+}
 
 
 
