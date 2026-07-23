@@ -171,7 +171,7 @@
                 <button onclick="ejecutarBusqueda()">Buscar</button>
             </div>
 <!-- Botón para abrir el escáner (Llama a la función y le pasa el ID 'valorBusqueda') -->
-    <button type="button" id="btnEscanearDoc" onclick="iniciarEscanerDoc('valorBusqueda')" style="margin-top: 10px; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+    <button type="button" id="btnEscanear" onclick="iniciarEscanerDoc('valorBusqueda')" style="margin-top: 10px; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
         📷 Escanear Código
     </button>
 
@@ -974,7 +974,7 @@ function iniciarEscanerDoc() {
             // 2. Extraer ÚNICAMENTE los primeros 18 caracteres
             let textoLimitado = textoLimpio.substring(0, 18);
             // 3. Pegar el valor limpio y limitado en el textbox de búsqueda
-            document.getElementById('docValorBusqueda').value = textoLimitado;
+            document.getElementById('valorBusqueda').value = textoLimitado;
             // 4. Detener la cámara y ocultar el contenedor automáticamente
             detenerEscanerDoc();
             // Opcional: ejecutarBusquedaDocumental();
