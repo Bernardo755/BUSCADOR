@@ -938,72 +938,80 @@
             }
         }
 
+
+
+
+// --- LÓGICA DEL ESCÁNER QR/CÓDIGO DE BARRAS ---
+let html5QrCodeDoc = null;
+
 function iniciarEscanerDoc() {
     const contenedorEscaner = document.getElementById('contenedor-escaner-doc');
     contenedorEscaner.style.display = 'block'; 
 
+    // Solo creamos la instancia si no existe
     if (!html5QrCodeDoc) {
         html5QrCodeDoc = new Html5Qrcode("reader-doc");
     }
     
-    // --- CAMBIOS AQUÍ ---
+    // Configuración a prueba de fallos
     const config = { 
         fps: 10, 
-        // Hacemos el área de escaneo rectangular (más ancha que alta) 
-        // para que entren perfectamente los códigos de barras.
-        qrbox: { width: 300, height: 150 },
-        
-        // Opcional: Forzar a la librería a buscar formatos específicos. 
-        // Si lo omites, intentará leer todos los formatos soportados por defecto.
-        formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.CODE_128, // Formato muy común en paquetería/documentos
-            Html5QrcodeSupportedFormats.CODE_39,  // Otro formato común
-            Html5QrcodeSupportedFormats.EAN_13    // Formato de productos comerciales
-        ]
+        // Hacemos el área dinámicamente más ancha que alta para códigos de barras, 
+        // pero asegurando que no desborde la pantalla del celular.
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+            return {
+                width: viewfinderWidth * 0.8, // 80% del ancho disponible
+                height: 150 // altura fija para enfocar la línea del código
+            };
+        }
     };
 
-    html5QrCodeDoc.start({ facingMode: "environment" }, config, 
+    html5QrCodeDoc.start(
+        { facingMode: "environment" }, 
+        config, 
         (decodedText, decodedResult) => {
+            // 1. Limpiamos el texto
             let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
+            
+            // 2. Extraemos los primeros 18 caracteres
             let textoLimitado = textoLimpio.substring(0, 18);
             
+            // 3. Pasamos el valor al input
             document.getElementById('docValorBusqueda').value = textoLimitado;
             
-            detenerEscanerDoc();
+            // 4. Detenemos el escáner (usamos un pequeño timeout para 
+            // evitar un bug conocido de la librería al detenerse instantáneamente)
+            setTimeout(() => {
+                detenerEscanerDoc();
+            }, 150);
+
         }, 
         (errorMessage) => {
-            // Ignoramos los errores continuos de búsqueda
+            // Ignorar errores de lectura mientras busca el código
         }
     ).catch((err) => {
-        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
-        console.error(err);
+        alert("Error al iniciar la cámara. Verifica los permisos.");
+        console.error("Error iniciando escáner: ", err);
         contenedorEscaner.style.display = 'none';
     });
 }
 
-
-
-
-        
-
 function detenerEscanerDoc() {
     if (html5QrCodeDoc) {
-        // Llamamos al método .stop() real de la librería
         html5QrCodeDoc.stop().then(() => {
             console.log("Cámara detenida correctamente.");
-            // Ocultamos el contenedor una vez que la cámara se apaga
             document.getElementById('contenedor-escaner-doc').style.display = 'none';
-            // Opcional: limpiar la UI del escáner
-            // html5QrCodeDoc.clear(); 
         }).catch((err) => {
             console.error("Error al detener el escáner: ", err);
+            // Si falla, al menos ocultamos el cuadro
+            document.getElementById('contenedor-escaner-doc').style.display = 'none';
         });
     } else {
-        // Si no hay instancia, solo ocultamos el contenedor por seguridad
         document.getElementById('contenedor-escaner-doc').style.display = 'none';
     }
 }
+
+        
 
 
         
