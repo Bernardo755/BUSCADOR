@@ -361,7 +361,7 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyEobIZmPThGCQEgpDBGFboaGMjICyq3XKqmNnGSuIxsfVq1fRClHwTbQsR4hBauVdD2A/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwSUuJncd6eHTM75CKECeCd8HJzThSVj7MwWnNHW5lyBpCa3CZ8rSUq8Pr-kkHkamSNgw/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -616,7 +616,8 @@
     loteTemporal.push({ 
         folio: folio, 
         estatus: estatusInput.value, 
-        observaciones: observacionesConFecha 
+        observaciones: observacionesConFecha, 
+        fecha: fechaActual // <--- ¡AGREGA ESTA LÍNEA AQUÍ!
     });
     
     // 4. Se eliminó obsInput.value = ""; para que el texto se mantenga en pantalla
