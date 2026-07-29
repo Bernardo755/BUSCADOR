@@ -7,6 +7,8 @@
     <!-- Librería SheetJS (xlsx) para generar archivos Excel descargables -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Librería para generar el archivo Excel en el navegador -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -216,6 +218,28 @@
             </div>
         </div>
 
+
+
+
+<!-- Interfaz del Módulo -->
+<div id="modulo-excel" style="padding: 20px; border: 1px solid #ccc; border-radius: 8px; max-width: 400px; background-color: #f9f9f9; font-family: sans-serif;">
+  <h3 style="margin-top: 0; color: #333;">Generar Reporte de Entregas</h3>
+  
+  <label for="selectFechaExcel" style="font-weight: bold; font-size: 14px;">Selecciona la Fecha:</label>
+  <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
+    <option value="">Cargando fechas disponibles...</option>
+  </select>
+  
+  <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+    Generar y Descargar Excel
+  </button>
+</div>
+
+
+
+
+
+        
         <!-- NUEVO MÓDULO: CONTROL DOCUMENTAL Y FOLIADO -->
         <div id="panel-documental" class="sub-panel panel-documental" style="display:block;">
             <h3 style="text-align: center;">Módulo de Validación y Fichas Documentales</h3>
@@ -361,7 +385,7 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwSUuJncd6eHTM75CKECeCd8HJzThSVj7MwWnNHW5lyBpCa3CZ8rSUq8Pr-kkHkamSNgw/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzpeae-OHcwB8QeZD-5La4pfpzeGqM4ANeU3HwCUXvm0PWPmu8Eshc9hr97uvGdi5rROw/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -669,6 +693,103 @@
             } catch(e) { alert("Error de red o timeout."); } 
             finally { btn.innerText = "🚀 Enviar todo el Bloque"; btn.disabled = false; }
         }
+
+
+
+
+
+// 1. Cargar la lista de fechas al abrir la página
+  window.addEventListener('load', function() {
+     google.script.run
+       .withSuccessHandler(function(fechas) {
+          const select = document.getElementById('selectFechaExcel');
+          select.innerHTML = '<option value="">-- Selecciona una fecha --</option>';
+          
+          fechas.forEach(fecha => {
+             let opt = document.createElement('option');
+             opt.value = fecha;
+             opt.innerText = fecha;
+             select.appendChild(opt);
+          });
+       })
+       .getFechasColumnaW();
+  });
+
+  // 2. Función que se dispara al hacer clic en el botón
+  function confirmarYGenerarExcel() {
+     const fechaSeleccionada = document.getElementById('selectFechaExcel').value;
+     
+     if (!fechaSeleccionada) {
+        alert("⚠️ Por favor, selecciona una fecha primero.");
+        return;
+     }
+
+     // Preguntar al usuario si desea continuar
+     const confirmar = confirm(`¿Estás seguro de que deseas generar el archivo Excel para la fecha: ${fechaSeleccionada}?`);
+     if (!confirmar) return;
+
+     // Cambiar estado del botón mientras carga
+     const btn = document.getElementById('btnGenerarExcel');
+     btn.innerText = "⏳ Generando archivo...";
+     btn.disabled = true;
+
+     // Llamar al backend para obtener los datos filtrados
+     google.script.run
+       .withSuccessHandler(function(matrizDatos) {
+          // matrizDatos[0] son los encabezados. Si la longitud es 1, no hay registros.
+          if (matrizDatos.length <= 1) { 
+              alert("No se encontraron registros para esta fecha.");
+              btn.innerText = "Generar y Descargar Excel";
+              btn.disabled = false;
+              return;
+          }
+          
+          // Enviar los datos a la función que construye el Excel
+          crearArchivoExcel(matrizDatos, fechaSeleccionada);
+          
+          // Restaurar botón
+          btn.innerText = "Generar y Descargar Excel";
+          btn.disabled = false;
+       })
+       .withFailureHandler(function(error) {
+          alert("❌ Ocurrió un error: " + error);
+          btn.innerText = "Generar y Descargar Excel";
+          btn.disabled = false;
+       })
+       .getDatosParaExcelPorFecha(fechaSeleccionada);
+  }
+
+  // 3. Función que usa la librería SheetJS para crear y descargar el .xlsx
+  function crearArchivoExcel(datos, fecha) {
+     // Inicializar un nuevo libro de trabajo y convertir el arreglo 2D a una hoja
+     const workbook = XLSX.utils.book_new();
+     const worksheet = XLSX.utils.aoa_to_sheet(datos); 
+
+     // Ajustar el ancho de las columnas de forma básica (opcional)
+     const wscols = [
+        {wch: 15}, {wch: 25}, {wch: 20}, {wch: 20}, 
+        {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}, 
+        {wch: 20}, {wch: 20}, {wch: 20}, {wch: 15}
+     ];
+     worksheet['!cols'] = wscols;
+
+     // Agregar la hoja al libro de trabajo
+     XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+
+     // Formatear el nombre del archivo (reemplaza las diagonales por guiones)
+     const nombreArchivo = `Reporte_Entregas_${fecha.replace(/\//g, '-')}.xlsx`;
+     
+     // Descargar el archivo
+     XLSX.writeFile(workbook, nombreArchivo);
+  }
+
+        
+
+
+
+
+
+        
 
         // --- LÓGICA DEL NUEVO MÓDULO DOCUMENTAL ---
         async function ejecutarBusquedaDocumental() {
