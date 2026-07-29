@@ -476,11 +476,13 @@
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
             document.getElementById('panel-documental').style.display = 'none';
+             document.getElementById('modulo-excel').style.display = 'none';
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
                 document.getElementById('panel-edicion').style.display = 'block';
               document.getElementById('panel-documental').style.display = 'block';
+                document.getElementById('modulo-excel').style.display = 'block';
             }
 
             if (rol === "ADMIN") {
