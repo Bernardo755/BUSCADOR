@@ -225,7 +225,6 @@
 <div id="modulo-excel" style="padding: 20px; border: 1px solid #ccc; border-radius: 8px; max-width: 400px; background-color: #f9f9f9; font-family: sans-serif;">
   <h3 style="margin-top: 0; color: #333;">Generar Reporte de Entregas</h3>
   
-  <!-- NUEVO: Botón para actualizar las fechas manualmente -->
   <button id="btnCargarFechas" onclick="cargarFechas()" style="width: 100%; padding: 8px; margin-bottom: 15px; background-color: #34a853; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
     🔄 Cargar / Actualizar Fechas
   </button>
@@ -390,7 +389,7 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwKiQLt8NnPpIC7VO3Pf5Jr9p3D7bPbpOvRjdHV9uaopZiFwUQLrIEmRI8RBIjdLy0ygg/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwdxdH0j_Gw9Rgw-brfNK2YaC2aS3NfE5HQvBDBmFtecFb_0ZKD2eM15rE-l8Berz2iDA/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -704,85 +703,84 @@
 
 
 // 1. NUEVO: Función que se ejecuta SOLO cuando presionas el botón de actualizar fechas
-  function cargarFechas() {
+// Usamos asyn/await y enviarPeticion tal como en tu código de bitácora
+  async function cargarFechas() {
      const btn = document.getElementById('btnCargarFechas');
      const select = document.getElementById('selectFechaExcel');
      
-     // Indicador visual de carga
      btn.innerText = "⏳ Buscando fechas...";
      btn.disabled = true;
      select.innerHTML = '<option value="">Cargando...</option>';
 
-     google.script.run
-       .withSuccessHandler(function(fechas) {
-          select.innerHTML = '<option value="">-- Selecciona una fecha --</option>';
-          
-          if(fechas.length > 0 && fechas[0].toString().startsWith("Error")) {
-             alert(fechas[0]); // Muestra si hubo un error en la hoja
-          } else {
-             fechas.forEach(fecha => {
-                let opt = document.createElement('option');
-                opt.value = fecha;
-                opt.innerText = fecha;
-                select.appendChild(opt);
+     try {
+         const respuesta = await enviarPeticion({ action: "obtener_fechas_w" });
+
+         if (respuesta.error) {
+             alert("Error del servidor: " + respuesta.error);
+             select.innerHTML = '<option value="">Error al cargar</option>';
+         } else if (respuesta.fechas && respuesta.fechas.length > 0) {
+             select.innerHTML = '<option value="">-- Selecciona una fecha --</option>';
+             respuesta.fechas.forEach(fecha => {
+                 let opt = document.createElement('option');
+                 opt.value = fecha;
+                 opt.innerText = fecha;
+                 select.appendChild(opt);
              });
-          }
-          // Restaurar botón
-          btn.innerText = "🔄 Cargar / Actualizar Fechas";
-          btn.disabled = false;
-       })
-       .withFailureHandler(function(error) {
-          alert("Error de conexión al cargar las fechas: " + error);
-          select.innerHTML = '<option value="">Error al cargar</option>';
-          btn.innerText = "🔄 Cargar / Actualizar Fechas";
-          btn.disabled = false;
-       })
-       .getFechasColumnaW();
+         } else {
+             select.innerHTML = '<option value="">No hay fechas disponibles</option>';
+         }
+     } catch (e) {
+         alert("Error de comunicación al buscar fechas.");
+         select.innerHTML = '<option value="">Error de conexión</option>';
+     } finally {
+         btn.innerText = "🔄 Cargar / Actualizar Fechas";
+         btn.disabled = false;
+     }
   }
 
-  // 2. Función para generar el Excel (Se mantiene igual)
-  function confirmarYGenerarExcel() {
+  async function confirmarYGenerarExcel() {
      const fechaSeleccionada = document.getElementById('selectFechaExcel').value;
      
      if (!fechaSeleccionada) {
-        alert("⚠️ Por favor, selecciona una fecha primero.");
-        return;
+        return alert("⚠️ Por favor, selecciona una fecha primero.");
      }
 
-     const confirmar = confirm(`¿Estás seguro de que deseas generar el archivo Excel para la fecha: ${fechaSeleccionada}?`);
-     if (!confirmar) return;
+     if (!confirm(`¿Estás seguro de que deseas generar el archivo Excel para la fecha: ${fechaSeleccionada}?`)) {
+         return;
+     }
 
      const btn = document.getElementById('btnGenerarExcel');
      btn.innerText = "⏳ Generando archivo...";
      btn.disabled = true;
 
-     google.script.run
-       .withSuccessHandler(function(matrizDatos) {
-          if (matrizDatos.length <= 1) { 
-              alert("No se encontraron registros para esta fecha.");
-              btn.innerText = "Generar y Descargar Excel";
-              btn.disabled = false;
-              return;
-          }
-          
-          crearArchivoExcel(matrizDatos, fechaSeleccionada);
-          
-          btn.innerText = "Generar y Descargar Excel";
-          btn.disabled = false;
-       })
-       .withFailureHandler(function(error) {
-          alert("❌ Ocurrió un error: " + error);
-          btn.innerText = "Generar y Descargar Excel";
-          btn.disabled = false;
-       })
-       .getDatosParaExcelPorFecha(fechaSeleccionada);
+     try {
+         const respuesta = await enviarPeticion({ 
+             action: "obtener_datos_excel", 
+             fecha: fechaSeleccionada 
+         });
+
+         if (respuesta.error) {
+             alert("Error del servidor: " + respuesta.error);
+         } else if (respuesta.datos && respuesta.datos.length > 1) { 
+             // Si length es > 1 significa que hay datos además de los encabezados
+             crearArchivoExcel(respuesta.datos, fechaSeleccionada);
+         } else {
+             alert("No se encontraron registros para esta fecha.");
+         }
+     } catch (e) {
+         alert("Error de red al procesar el Excel.");
+     } finally {
+         btn.innerText = "Generar y Descargar Excel";
+         btn.disabled = false;
+     }
   }
 
-  // 3. Función que usa la librería SheetJS (Se mantiene igual)
+  // Función que procesa los datos y descarga el Excel
   function crearArchivoExcel(datos, fecha) {
      const workbook = XLSX.utils.book_new();
      const worksheet = XLSX.utils.aoa_to_sheet(datos); 
 
+     // Ajuste básico de columnas
      const wscols = [
         {wch: 15}, {wch: 25}, {wch: 20}, {wch: 20}, 
         {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}, 
@@ -791,10 +789,11 @@
      worksheet['!cols'] = wscols;
 
      XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+     
+     // Limpiar la fecha para evitar problemas al guardar el archivo (ej. 29/07/2026 -> 29-07-2026)
      const nombreArchivo = `Reporte_Entregas_${fecha.replace(/\//g, '-')}.xlsx`;
      XLSX.writeFile(workbook, nombreArchivo);
   }
-
         
 
 
