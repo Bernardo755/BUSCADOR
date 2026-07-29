@@ -225,9 +225,14 @@
 <div id="modulo-excel" style="padding: 20px; border: 1px solid #ccc; border-radius: 8px; max-width: 400px; background-color: #f9f9f9; font-family: sans-serif;">
   <h3 style="margin-top: 0; color: #333;">Generar Reporte de Entregas</h3>
   
+  <!-- NUEVO: Botón para actualizar las fechas manualmente -->
+  <button id="btnCargarFechas" onclick="cargarFechas()" style="width: 100%; padding: 8px; margin-bottom: 15px; background-color: #34a853; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+    🔄 Cargar / Actualizar Fechas
+  </button>
+
   <label for="selectFechaExcel" style="font-weight: bold; font-size: 14px;">Selecciona la Fecha:</label>
   <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
-    <option value="">Cargando fechas disponibles...</option>
+    <option value="">-- Haz clic en actualizar primero --</option>
   </select>
   
   <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
@@ -385,7 +390,7 @@
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzpeae-OHcwB8QeZD-5La4pfpzeGqM4ANeU3HwCUXvm0PWPmu8Eshc9hr97uvGdi5rROw/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwKiQLt8NnPpIC7VO3Pf5Jr9p3D7bPbpOvRjdHV9uaopZiFwUQLrIEmRI8RBIjdLy0ygg/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
@@ -698,24 +703,44 @@
 
 
 
-// 1. Cargar la lista de fechas al abrir la página
-  window.addEventListener('load', function() {
+// 1. NUEVO: Función que se ejecuta SOLO cuando presionas el botón de actualizar fechas
+  function cargarFechas() {
+     const btn = document.getElementById('btnCargarFechas');
+     const select = document.getElementById('selectFechaExcel');
+     
+     // Indicador visual de carga
+     btn.innerText = "⏳ Buscando fechas...";
+     btn.disabled = true;
+     select.innerHTML = '<option value="">Cargando...</option>';
+
      google.script.run
        .withSuccessHandler(function(fechas) {
-          const select = document.getElementById('selectFechaExcel');
           select.innerHTML = '<option value="">-- Selecciona una fecha --</option>';
           
-          fechas.forEach(fecha => {
-             let opt = document.createElement('option');
-             opt.value = fecha;
-             opt.innerText = fecha;
-             select.appendChild(opt);
-          });
+          if(fechas.length > 0 && fechas[0].toString().startsWith("Error")) {
+             alert(fechas[0]); // Muestra si hubo un error en la hoja
+          } else {
+             fechas.forEach(fecha => {
+                let opt = document.createElement('option');
+                opt.value = fecha;
+                opt.innerText = fecha;
+                select.appendChild(opt);
+             });
+          }
+          // Restaurar botón
+          btn.innerText = "🔄 Cargar / Actualizar Fechas";
+          btn.disabled = false;
+       })
+       .withFailureHandler(function(error) {
+          alert("Error de conexión al cargar las fechas: " + error);
+          select.innerHTML = '<option value="">Error al cargar</option>';
+          btn.innerText = "🔄 Cargar / Actualizar Fechas";
+          btn.disabled = false;
        })
        .getFechasColumnaW();
-  });
+  }
 
-  // 2. Función que se dispara al hacer clic en el botón
+  // 2. Función para generar el Excel (Se mantiene igual)
   function confirmarYGenerarExcel() {
      const fechaSeleccionada = document.getElementById('selectFechaExcel').value;
      
@@ -724,19 +749,15 @@
         return;
      }
 
-     // Preguntar al usuario si desea continuar
      const confirmar = confirm(`¿Estás seguro de que deseas generar el archivo Excel para la fecha: ${fechaSeleccionada}?`);
      if (!confirmar) return;
 
-     // Cambiar estado del botón mientras carga
      const btn = document.getElementById('btnGenerarExcel');
      btn.innerText = "⏳ Generando archivo...";
      btn.disabled = true;
 
-     // Llamar al backend para obtener los datos filtrados
      google.script.run
        .withSuccessHandler(function(matrizDatos) {
-          // matrizDatos[0] son los encabezados. Si la longitud es 1, no hay registros.
           if (matrizDatos.length <= 1) { 
               alert("No se encontraron registros para esta fecha.");
               btn.innerText = "Generar y Descargar Excel";
@@ -744,10 +765,8 @@
               return;
           }
           
-          // Enviar los datos a la función que construye el Excel
           crearArchivoExcel(matrizDatos, fechaSeleccionada);
           
-          // Restaurar botón
           btn.innerText = "Generar y Descargar Excel";
           btn.disabled = false;
        })
@@ -759,13 +778,11 @@
        .getDatosParaExcelPorFecha(fechaSeleccionada);
   }
 
-  // 3. Función que usa la librería SheetJS para crear y descargar el .xlsx
+  // 3. Función que usa la librería SheetJS (Se mantiene igual)
   function crearArchivoExcel(datos, fecha) {
-     // Inicializar un nuevo libro de trabajo y convertir el arreglo 2D a una hoja
      const workbook = XLSX.utils.book_new();
      const worksheet = XLSX.utils.aoa_to_sheet(datos); 
 
-     // Ajustar el ancho de las columnas de forma básica (opcional)
      const wscols = [
         {wch: 15}, {wch: 25}, {wch: 20}, {wch: 20}, 
         {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}, 
@@ -773,13 +790,8 @@
      ];
      worksheet['!cols'] = wscols;
 
-     // Agregar la hoja al libro de trabajo
      XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
-
-     // Formatear el nombre del archivo (reemplaza las diagonales por guiones)
      const nombreArchivo = `Reporte_Entregas_${fecha.replace(/\//g, '-')}.xlsx`;
-     
-     // Descargar el archivo
      XLSX.writeFile(workbook, nombreArchivo);
   }
 
