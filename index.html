@@ -204,6 +204,128 @@
   width: 100%;            /* Ocupa todo el ancho disponible */
   margin: 20px 0;         /* Espaciado opcional arriba y abajo */
 }
+
+
+
+
+
+/* Bloque Contenedor Principal */
+    .bloque-lanzador-tarjetas {
+      background-color: var(--surface);
+      width: 100%;
+      max-width: 550px;
+      padding: 40px 30px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px rgba(0, 47, 42, 0.08);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    /* Título Centrado */
+    .titulo-lanzador-tarjetas {
+      color: var(--primary);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 30px;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Contenedor para Centrar el Botón */
+    .contenedor-boton-tarjetas {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin: 20px 0;
+    }
+
+    /* Botón de Apertura */
+    .btn-lanzador-tarjetas {
+      background-color:  rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0, 47, 42, 0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-lanzador-tarjetas:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 47, 42, 0.3);
+    }
+
+    .btn-lanzador-tarjetas:active {
+      transform: translateY(0);
+    }
+
+    /* --- ESTILOS DEL MODAL / FRAME INDEPENDIENTE --- */
+    .modal-overlay-tarjetas {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-container-tarjetas {
+      background: #fff;
+      width: 90%;
+      max-width: 1000px;
+      height: 85vh;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-header-tarjetas {
+      padding: 12px 20px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .btn-cerrar-tarjetas {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .btn-cerrar-tarjetas:hover {
+      background: #c0392b;
+    }
+
+    .modal-iframe-tarjetas {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+        
         
     </style>
 </head>
@@ -267,6 +389,32 @@
     <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
   </div>
 </div>
+
+
+
+  <!-- Bloque Principal con Título y Botón Centrados -->
+  <div id="bloque-lanzador-tarjetas">
+    <h2 class="titulo-lanzador-tarjetas">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
+    
+    <div class="contenedor-boton-tarjetas">
+      <button id="btnAbrirCargaTarjetas" class="btn-lanzador-tarjetas">
+        🚀 ABRIR APP DE ACTUALIZACION
+      </button>
+    </div>
+  </div>
+
+  <!-- Estructura de la Ventana Modal / Frame -->
+  <div id="modalCargaTarjetas" class="modal-overlay-tarjetas">
+    <div class="modal-container-tarjetas">
+      <div class="modal-header-tarjetas">
+        <span>Carga de Nuevas Tarjetas o Estatus</span>
+        <button id="btnCerrarCargaTarjetas" class="btn-cerrar-tarjetas">Cerrar ✖</button>
+      </div>
+      <!-- Iframe independiente -->
+      <iframe id="iframeCargaTarjetas" class="modal-iframe-tarjetas" src=""></iframe>
+    </div>
+  </div>
+
         
 
         <!-- CAPTURA INTERMEDIA (LOTES) -->
@@ -565,6 +713,7 @@
             document.getElementById('panel-documental').style.display = 'none';
              document.getElementById('modulo-excel').style.display = 'none';
             document.getElementById('contenedor-boton').style.display = 'none';
+            document.getElementById('bloque-lanzador-tarjetas').style.display = 'none';
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
@@ -576,6 +725,7 @@
 
             if (rol === "ADMIN") {
                 document.getElementById('panel-admin').style.display = 'block';
+                 document.getElementById('bloque-lanzador-tarjetas').style.display = 'block';
                 cargarUsuariosParaAdmin();
                 cargarFiltrosDesplegablesBitacora();
             }
@@ -1432,6 +1582,26 @@ btnCerrar.addEventListener('click', () => {
   modal.style.display = 'none';
   iframe.src = ''; // Limpia el iframe al salir
 });
+
+
+         const URL_CARGA_TARJETAS = 'https://bernardo755.github.io/ACTUALIZADOR/';
+
+    const btnAbrirTarjetas = document.getElementById('btnAbrirCargaTarjetas');
+    const btnCerrarTarjetas = document.getElementById('btnCerrarCargaTarjetas');
+    const modalTarjetas = document.getElementById('modalCargaTarjetas');
+    const iframeTarjetas = document.getElementById('iframeCargaTarjetas');
+
+    // Abrir la app dentro de su propio iframe modal
+    btnAbrirTarjetas.addEventListener('click', () => {
+      iframeTarjetas.src = URL_CARGA_TARJETAS;
+      modalTarjetas.style.display = 'flex';
+    });
+
+    // Cerrar el modal y limpiar este iframe en específico
+    btnCerrarTarjetas.addEventListener('click', () => {
+      modalTarjetas.style.display = 'none';
+      iframeTarjetas.src = ''; 
+    });
 
         
     </script>
