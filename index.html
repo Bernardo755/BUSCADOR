@@ -140,7 +140,68 @@
         }
 
 
- /* Fondo oscuro translúcido */
+/* --- 1. ESTILOS DEL RECUADRO Y BOTÓN PRINCIPAL --- */
+
+/* Bloque Contenedor Principal (La caja o recuadro) */
+.bloque-lanzador {
+  background-color: #ffffff; 
+  width: 100%;
+  max-width: 550px;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  margin: 20px auto;
+  font-family: sans-serif;
+}
+
+/* Título dentro del recuadro */
+.titulo-lanzador {
+  color: #1a252f;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 30px;
+  letter-spacing: -0.5px;
+}
+
+/* Contenedor para centrar el botón */
+.contenedor-boton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Diseño del Botón que abre el modal */
+.btn-lanzador {
+  background-color: #1a252f; /* Combinado con el color de tu modal */
+  color: #ffffff;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(26, 37, 47, 0.3);
+}
+
+.btn-lanzador:hover {
+  background-color: #2c3e50; /* Tono un poco más claro al pasar el mouse */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(26, 37, 47, 0.4);
+}
+
+.btn-lanzador:active {
+  transform: translateY(0);
+}
+
+
+/* --- 2. ESTILOS DE LA VENTANA MODAL --- */
+
+/* Fondo oscuro translúcido */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -197,14 +258,6 @@
   height: 100%;
   border: none;
 }
-.contenedor-boton {
-  display: flex;
-  justify-content: center; /* Centra horizontalmente */
-  align-items: center;    /* Opcional: centra verticalmente si tiene altura */
-  width: 100%;            /* Ocupa todo el ancho disponible */
-  margin: 20px 0;         /* Espaciado opcional arriba y abajo */
-}
-
 
 
 
@@ -326,6 +379,9 @@
     }
 
 
+
+
+        
 
 
 /* Bloque Contenedor Principal */
@@ -499,10 +555,17 @@
 
 <!-- Botón principal en tu App A -->
 
-<div id="contenedor-boton" style="display: none;"> 
-    <h3 style="text-align: center;"> REGISTRO DE TRAMITES</h3>
-<button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
+<!-- Botón principal en tu App A -->
+<!-- Se conserva tu ID "contenedor-boton" y el display: none, pero se añade la clase del recuadro -->
+<div id="contenedor-boton" class="bloque-lanzador" style="display: none;"> 
+  <h3 class="titulo-lanzador">REGISTRO DE TRÁMITES</h3>
+  
+  <div class="contenedor-boton">
+    <!-- Se conserva tu ID "btnAbrirAppB" para que tu JavaScript siga funcionando -->
+    <button id="btnAbrirAppB" class="btn-lanzador">Registrar Trámites</button>
+  </div>
 </div>
+
 <!-- Estructura de la ventana Modal -->
 <div id="modalAppB" class="modal-overlay">
   <div class="modal-container">
