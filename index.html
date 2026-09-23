@@ -325,6 +325,131 @@
       border: none;
     }
 
+
+
+
+/* Bloque Contenedor Principal */
+  .bloque-lanzador-consulta {
+    background-color: #ffffff; 
+    width: 100%;
+    max-width: 550px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(30, 91, 79, 0.15); /* Sombra basada en #1e5b4f */
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    margin: 20px auto;
+    font-family: sans-serif;
+  }
+
+  /* Título Centrado */
+  .titulo-lanzador-consulta {
+    color: #1e5b4f;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 30px;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Contenedor para Centrar el Botón */
+  .contenedor-boton-consulta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 20px 0;
+  }
+
+  /* Botón de Apertura */
+  .btn-lanzador-consulta {
+    background-color: #1e5b4f;
+    color: #ffffff;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(30, 91, 79, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-lanzador-consulta:hover {
+    background-color: #16483e; /* Tono más oscuro al pasar el mouse */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(30, 91, 79, 0.4);
+  }
+
+  .btn-lanzador-consulta:active {
+    transform: translateY(0);
+  }
+
+  /* --- ESTILOS DEL MODAL / FRAME INDEPENDIENTE --- */
+  .modal-overlay-consulta {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.85); /* Fondo oscuro semitransparente */
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-container-consulta {
+    background: #0f172a;
+    width: 95%;
+    max-width: 1200px; /* Ancho ampliado para visualizar bien la tabla */
+    height: 90vh; /* Altura amplia */
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid #1e5b4f;
+  }
+
+  .modal-header-consulta {
+    padding: 16px 24px;
+    background: #1e5b4f;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-family: sans-serif;
+  }
+
+  .btn-cerrar-consulta {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+
+  .btn-cerrar-consulta:hover {
+    background: #dc2626;
+  }
+
+  .modal-iframe-consulta {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: #0f172a; /* Fondo oscuro mientras carga */
+  }
+
         
         
     </style>
@@ -414,6 +539,34 @@
       <iframe id="iframeCargaTarjetas" class="modal-iframe-tarjetas" src=""></iframe>
     </div>
   </div>
+
+
+
+
+<!-- Bloque Principal con Título y Botón Centrados -->
+<div id="bloque-lanzador-consulta" class="bloque-lanzador-consulta">
+  <h2 class="titulo-lanzador-consulta">SISTEMA DE CONSULTA DE ESTADOS</h2>
+  
+  <div class="contenedor-boton-consulta">
+    <button id="btnAbrirConsulta" class="btn-lanzador-consulta">
+      <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      ABRIR BÚSQUEDA MASIVA
+    </button>
+  </div>
+</div>
+
+<!-- Estructura de la Ventana Modal / Frame -->
+<div id="modalConsulta" class="modal-overlay-consulta">
+  <div class="modal-container-consulta">
+    <div class="modal-header-consulta">
+      <span>Módulo de Consulta Masiva (JEF, EMS, GB, BASICA)</span>
+      <button id="btnCerrarConsulta" class="btn-cerrar-consulta">Cerrar ✖</button>
+    </div>
+    <!-- Iframe independiente -->
+    <iframe id="iframeConsulta" class="modal-iframe-consulta" src=""></iframe>
+  </div>
+</div>
+
 
         
 
@@ -714,6 +867,8 @@
              document.getElementById('modulo-excel').style.display = 'none';
             document.getElementById('contenedor-boton').style.display = 'none';
             document.getElementById('bloque-lanzador-tarjetas').style.display = 'none';
+            document.getElementById('bloque-lanzador-consulta').style.display = 'none';
+            
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
@@ -721,6 +876,8 @@
               document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
                 document.getElementById('contenedor-boton').style.display = 'block';
+                document.getElementById('btnAbrirConsulta').style.display = 'block';
+                
             }
 
             if (rol === "ADMIN") {
@@ -1603,6 +1760,28 @@ btnCerrar.addEventListener('click', () => {
       iframeTarjetas.src = ''; 
     });
 
+
+
+
+        // ⚠️ REEMPLAZA ESTA URL con la URL de implementación de tu Web App de Google Apps Script 
+  const URL_SISTEMA_CONSULTA = 'https://script.google.com/macros/s/TU_SCRIPT_ID/exec';
+
+  const btnAbrirConsulta = document.getElementById('btnAbrirConsulta');
+  const btnCerrarConsulta = document.getElementById('btnCerrarConsulta');
+  const modalConsulta = document.getElementById('modalConsulta');
+  const iframeConsulta = document.getElementById('iframeConsulta');
+
+  // Abrir la app dentro de su propio iframe modal
+  btnAbrirConsulta.addEventListener('click', () => {
+    iframeConsulta.src = URL_SISTEMA_CONSULTA;
+    modalConsulta.style.display = 'flex';
+  });
+
+  // Cerrar el modal y limpiar este iframe en específico
+  btnCerrarConsulta.addEventListener('click', () => {
+    modalConsulta.style.display = 'none';
+    iframeConsulta.src = ''; 
+  });
         
     </script>
 </body>
