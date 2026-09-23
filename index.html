@@ -266,130 +266,216 @@
 
 
         /* --- bloque dos VARIABLES DE COLOR (Ajusta los colores según tu diseño) --- */
+/* Variables de color */
+  :root {
+    --surface: #ffffff;
+    --radius: 12px;
+    --border: #e2e8f0;
+    --primary: #1a252f;
+    --primary-hover: #2c3e50;
+  }
+
+  /* BLOQUE 1: REGISTRO DE TRAMITES */
+  .bloque-lanzador {
+    background-color: var(--surface); 
+    width: 100%;
+    max-width: 550px;
+    padding: 40px 30px;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    text-align: center;
+    margin: 20px auto;
+    font-family: sans-serif;
+  }
+  .titulo-lanzador {
+    color: var(--primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 30px;
+    letter-spacing: -0.5px;
+  }
+  .contenedor-boton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  .btn-lanzador {
+    background-color: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(26, 37, 47, 0.3);
+  }
+  .btn-lanzador:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(26, 37, 47, 0.4);
+  }
+  .btn-lanzador:active {
+    transform: translateY(0);
+  }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-container {
+    background: #fff;
+    width: 90%;
+    max-width: 1000px;
+    height: 85vh;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .modal-header {
+    padding: 10px 20px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn-cerrar {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .btn-cerrar:hover {
+    background: #c0392b;
+  }
+  .modal-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* BLOQUE 2: CARGA DE NUEVAS TARJETAS */
+  .bloque-lanzador-tarjetas {
+    background-color: var(--surface);
+    width: 100%;
+    max-width: 550px;
+    padding: 40px 30px;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    text-align: center;
+    margin: 20px auto;
+    font-family: sans-serif;
+  }
+  .titulo-lanzador-tarjetas {
+    color: var(--primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 30px;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+  }
+  .contenedor-boton-tarjetas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 20px 0;
+  }
+  .btn-lanzador-tarjetas {
+    background-color: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-lanzador-tarjetas:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  }
+  .btn-lanzador-tarjetas:active {
+    transform: translateY(0);
+  }
+  .modal-overlay-tarjetas {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-container-tarjetas {
+    background: #fff;
+    width: 90%;
+    max-width: 1000px;
+    height: 85vh;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .modal-header-tarjetas {
+    padding: 12px 20px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-family: sans-serif;
+  }
+  .btn-cerrar-tarjetas {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+  .btn-cerrar-tarjetas:hover {
+    background: #c0392b;
+  }
+  .modal-iframe-tarjetas {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
 
 
-/* --- ESTILOS DEL RECUADRO Y BOTÓN --- */
-
-/* Bloque Contenedor Principal */
-.bloque-lanzador-tarjetas {
-  background-color: var(--surface);
-  width: 100%;
-  max-width: 550px;
-  padding: 40px 30px;
-  border-radius: var(--radius);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra suave y neutra */
-  border: 1px solid var(--border);
-  text-align: center;
-  margin: 20px auto; /* ¡Importante! Esto centra el recuadro en la pantalla */
-  font-family: sans-serif;
-}
-
-/* Título Centrado */
-.titulo-lanzador-tarjetas {
-  color: var(--primary);
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 30px;
-  letter-spacing: -0.5px;
-  text-transform: uppercase;
-}
-
-/* Contenedor para Centrar el Botón */
-.contenedor-boton-tarjetas {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin: 20px 0;
-}
-
-/* Botón de Apertura */
-.btn-lanzador-tarjetas {
-  background-color: var(--primary);
-  color: #ffffff;
-  border: none;
-  padding: 16px 32px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.btn-lanzador-tarjetas:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-}
-
-.btn-lanzador-tarjetas:active {
-  transform: translateY(0);
-}
-
-
-/* --- ESTILOS DEL MODAL / FRAME INDEPENDIENTE --- */
-
-.modal-overlay-tarjetas {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-container-tarjetas {
-  background: #fff;
-  width: 90%;
-  max-width: 1000px;
-  height: 85vh;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-.modal-header-tarjetas {
-  padding: 12px 20px;
-  background: var(--primary);
-  color: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  font-family: sans-serif;
-}
-
-.btn-cerrar-tarjetas {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-
-.btn-cerrar-tarjetas:hover {
-  background: #c0392b;
-}
-
-.modal-iframe-tarjetas {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
 
 
 
@@ -591,35 +677,6 @@
   </div>
 </div>
 
-
-
-  <!-- Bloque Principal con Título y Botón Centrados -->
-  <div id="bloque-lanzador-tarjetas">
-    <h2 class="titulo-lanzador-tarjetas">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
-    
-    <div class="contenedor-boton-tarjetas">
-      <button id="btnAbrirCargaTarjetas" class="btn-lanzador-tarjetas">
-        🚀 ABRIR APP DE ACTUALIZACION
-      </button>
-    </div>
-  </div>
-
-  <!-- Estructura de la Ventana Modal / Frame -->
-  <div id="modalCargaTarjetas" class="modal-overlay-tarjetas">
-    <div class="modal-container-tarjetas">
-      <div class="modal-header-tarjetas">
-        <span>Carga de Nuevas Tarjetas o Estatus</span>
-        <button id="btnCerrarCargaTarjetas" class="btn-cerrar-tarjetas">Cerrar ✖</button>
-      </div>
-      <!-- Iframe independiente -->
-      <iframe id="iframeCargaTarjetas" class="modal-iframe-tarjetas" src=""></iframe>
-    </div>
-  </div>
-
-
-
-
-
 <!-- Bloque Principal con Título y Botón Centrados -->
 <!-- Se añadió la clase para que tome los estilos del recuadro -->
 <div id="bloque-lanzador-tarjetas" class="bloque-lanzador-tarjetas">
@@ -643,6 +700,42 @@
     <iframe id="iframeCargaTarjetas" class="modal-iframe-tarjetas" src=""></iframe>
   </div>
 </div>
+
+
+
+
+
+
+<!-- Bloque Principal con Título y Botón Centrados -->
+<div id="bloque-lanzador-consulta" class="bloque-lanzador-consulta">
+  <h2 class="titulo-lanzador-consulta">CONSULTA ESTADOS</h2>
+  
+  <div class="contenedor-boton-consulta">
+    <button id="btnAbrirConsulta" class="btn-lanzador-consulta">
+      <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      ABRIR BÚSQUEDA
+    </button>
+  </div>
+</div>
+
+<!-- Estructura de la Ventana Modal / Frame -->
+<div id="modalConsulta" class="modal-overlay-consulta">
+  <div class="modal-container-consulta">
+    <div class="modal-header-consulta">
+      <span>Módulo de Consulta (tres niveles)</span>
+      <button id="btnCerrarConsulta" class="btn-cerrar-consulta">Cerrar ✖</button>
+    </div>
+    <!-- Iframe independiente -->
+    <iframe id="iframeConsulta" class="modal-iframe-consulta" src=""></iframe>
+  </div>
+</div>
+
+
+
+
+
+
+
 
 
         
