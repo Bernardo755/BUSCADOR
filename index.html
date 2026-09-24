@@ -1045,15 +1045,13 @@
                 document.getElementById('panel-edicion').style.display = 'block';
               document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
-                document.getElementById('contenedor-boton').style.display = 'block';
-                 document.getElementById('bloque-lanzador-tarjetas').style.display = 'block';
-                document.getElementById('bloque-lanzador-consulta').style.display = 'block';
-                
+                document.getElementById('contenedor-boton').style.display = 'block'; 
             }
 
             if (rol === "ADMIN") {
                 document.getElementById('panel-admin').style.display = 'block';
                  document.getElementById('bloque-lanzador-tarjetas').style.display = 'block';
+                 document.getElementById('bloque-lanzador-consulta').style.display = 'block';
                 cargarUsuariosParaAdmin();
                 cargarFiltrosDesplegablesBitacora();
             }
