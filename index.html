@@ -1184,7 +1184,7 @@
             if(!actividad) { contenedorCampos.style.display = 'none'; return; }
             contenedorCampos.style.display = 'flex';
             selectorEstatus.innerHTML = '';
-            let opciones = (actividad === "SOBRANTES") ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"] : ["ENTREGADA", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
+            let opciones = (actividad === "SOBRANTES") ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"] : ["ENTREGADA POR 1301","ENTREGADA POR 1302","ENTREGADA POR 1303","ENTREGADA POR 1304","ENTREGADA POR 1305","ENTREGADA POR 1306","ENTREGADA POR 1307", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
             opciones.forEach(opt => {
                 let el = document.createElement('option');
                 el.value = opt; el.innerText = opt;
