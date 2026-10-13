@@ -5,7 +5,7 @@
    Esto organiza el proyecto, pero no convierte las URLs en secretos.
    ========================================================= */
 window.APP_CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbwi87ApKxgur8zx0XoJESwZWShaHxh2iSKt4jIRwhH7p3f0kDHf4RRDABhvpktXmZYCOw/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbxstQtPQg9lbYE-RrEpFSslvCzxiZaManHdEzHdfxAW6IC2kYIfgnLUwwViUvzk2ynWTg/exec',
   URL_APP_B: 'https://bernardo755.github.io/PRUEBA/',
   URL_CARGA_TARJETAS: 'https://bernardo755.github.io/ACTUALIZADOR/',
   URL_SISTEMA_CONSULTA: 'https://bernardo755.github.io/ESTADOS/'
