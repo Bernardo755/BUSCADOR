@@ -166,13 +166,13 @@ const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
             }
 
             if (esAtencion) {
-                ['acordeon-edicion',  'acordeon-documental', 'acordeon-excel'].forEach(mostrarModulo);
+                ['acordeon-edicion', 'acordeon-excel'].forEach(mostrarModulo);
                 iniciarTemporizadorInactividad();
                 return;
             }
 
           if (esResp) {
-                [ 'acordeon-consulta','acordeon-tramites','acordeon-edicion', 'acordeon-documental', 'acordeon-excel'].forEach(mostrarModulo);
+                ['acordeon-tarjetas', 'acordeon-consulta','acordeon-tramites','acordeon-edicion', 'acordeon-excel'].forEach(mostrarModulo);
                 iniciarTemporizadorInactividad();
                 return;
             }
