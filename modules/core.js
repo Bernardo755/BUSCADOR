@@ -171,7 +171,13 @@ const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
                 return;
             }
 
-            if (esAdmin || esResp) {
+          if (esResp) {
+                ['acordeon-edicion', 'acordeon-documental', 'acordeon-excel'].forEach(mostrarModulo);
+                iniciarTemporizadorInactividad();
+                return;
+            }
+           
+            if (esAdmin) {
                 modulos.forEach(mostrarModulo);
                 cargarUsuariosParaAdmin();
                 cargarFiltrosDesplegablesBitacora();
