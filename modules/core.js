@@ -228,7 +228,7 @@ const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
                 if (!Array.isArray(lista) || lista.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
 
                 let html = `<div class="contenedor-tabla"><table><thead><tr>
-                            <th>FOLIO</th><th>NOMBRE</th><th>CURP</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>ESTATUS</th>
+                            <th>FOLIO</th><th>NOMBRE</th><th>CURP</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>ESTATUS</th><th>CAPTURA</th>
                             </tr></thead><tbody>`;
                 lista.forEach(f => {
                     html += `<tr>
@@ -243,6 +243,7 @@ const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
                                 <td>${escaparHTML(f.MES_REMESA)}</td>
                                 <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
                                 <td>${obtenerBadgeEstatus(f.ESTATUS)}</td>
+                                <td>${escaparHTML(f.CAPTURA)}</td>
                              </tr>`;
                 });
                 html += '</tbody></table></div>';
